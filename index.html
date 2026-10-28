@@ -1,0 +1,1884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#100B14" id="themeColor">
+<title>Seasoned</title>
+
+<meta name="description" content="Seasoned — a 12-month grocery and household inventory planner with seasonal themes, light/dark appearance modes, offline support, and backups.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" id="appleStatusBarStyle">
+<meta name="apple-mobile-web-app-title" content="Seasoned">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+
+<style>
+:root {
+  color-scheme: dark;
+  --bg:#100B14;
+  --surface:#191320;
+  --surface2:#241B2C;
+  --surface3:#30233B;
+  --line:#473553;
+  --text:#F7F1FA;
+  --muted:#B9AABD;
+  --accent:#F97316;
+  --accent2:#C084FC;
+  --accentSoft:#3B1E13;
+  --glow:rgba(249,115,22,.22);
+  --success:#7FA36E;
+  --danger:#E47B68;
+  --shadow:0 16px 38px rgba(0,0,0,.34);
+  --radius:18px;
+}
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; background:var(--bg); }
+body {
+  margin:0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 10% -8%, var(--glow), transparent 34%),
+    radial-gradient(circle at 100% 8%, color-mix(in srgb, var(--accent2) 16%, transparent), transparent 30%),
+    var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  transition:background .28s ease,color .28s ease;
+}
+button,input,select { font:inherit; }
+button { -webkit-tap-highlight-color:transparent; }
+.shell { max-width:980px; margin:auto; padding:0 14px 110px; }
+
+.topbar {
+  position:sticky; top:0; z-index:30;
+  margin:0 -14px 16px;
+  padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
+  background:linear-gradient(to bottom, color-mix(in srgb, var(--bg) 98%, transparent), color-mix(in srgb, var(--bg) 92%, transparent));
+  backdrop-filter:blur(18px);
+  border-bottom:1px solid color-mix(in srgb, var(--text) 9%, transparent);
+}
+.brandrow { display:flex; align-items:center; justify-content:space-between; gap:14px; }
+.brand { display:flex; align-items:center; gap:12px; min-width:0; }
+.logo {
+  width:44px; height:44px; border-radius:14px;
+  display:grid; place-items:center;
+  background:linear-gradient(145deg,var(--accent),var(--accent2));
+  color:#fff; font-size:24px; box-shadow:0 8px 24px rgba(0,0,0,.25);
+  transition:background .25s ease;
+}
+.brand h1 { font-size:20px; margin:0; line-height:1.1; color:var(--accent); transition:color .25s ease; }
+.brand p { margin:3px 0 0; color:var(--muted); font-size:12px; }
+.iconbtn {
+  border:1px solid var(--line);
+  background:var(--surface);
+  color:var(--accent);
+  width:42px; height:42px; border-radius:13px;
+  display:grid; place-items:center;
+  cursor:pointer;
+  box-shadow:0 4px 14px rgba(0,0,0,.18);
+}
+.iconbtn:active { transform:scale(.97); }
+
+.monthtabs {
+  display:flex; gap:7px; overflow-x:auto;
+  padding:10px 1px 2px;
+  scrollbar-width:none;
+  scroll-snap-type:x proximity;
+}
+.monthtabs::-webkit-scrollbar { display:none; }
+.monthtab {
+  flex:0 0 auto; min-width:70px;
+  border:1px solid var(--line);
+  background:var(--surface);
+  color:var(--muted);
+  border-radius:14px;
+  padding:8px 10px;
+  cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  scroll-snap-align:center;
+  transition:.18s ease;
+}
+.monthtab .micon { font-size:18px; line-height:1; }
+.monthtab .mname { font-size:11px; font-weight:800; letter-spacing:.02em; }
+.monthtab.active {
+  color:#fff;
+  background:linear-gradient(145deg,var(--accent),var(--accent2));
+  border-color:transparent;
+  box-shadow:0 8px 22px var(--glow);
+  transform:translateY(-1px);
+}
+
+.hero {
+  background:linear-gradient(145deg, color-mix(in srgb, var(--accent) 12%, var(--surface)), color-mix(in srgb, var(--surface) 96%, black) 62%);
+  border:1px solid color-mix(in srgb, var(--accent) 24%, var(--line));
+  box-shadow:var(--shadow);
+  border-radius:24px;
+  padding:16px;
+  margin-bottom:14px;
+  transition:background .25s ease,border-color .25s ease;
+}
+.themehead { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.themeidentity { display:flex; align-items:center; gap:11px; min-width:0; }
+.themeemoji {
+  width:48px; height:48px; border-radius:15px;
+  display:grid; place-items:center; font-size:26px;
+  background:color-mix(in srgb, var(--accent) 16%, var(--surface2));
+  border:1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+}
+.thememonth { font-size:12px; font-weight:900; color:var(--accent); text-transform:uppercase; letter-spacing:.12em; }
+.themename { margin-top:2px; font-size:21px; font-weight:850; line-height:1.1; }
+.themedesc { margin-top:4px; color:var(--muted); font-size:11px; }
+.themebadge {
+  flex:0 0 auto; color:var(--accent2); background:color-mix(in srgb, var(--accent2) 12%, var(--surface2));
+  border:1px solid color-mix(in srgb, var(--accent2) 28%, var(--line));
+  border-radius:999px; padding:7px 9px; font-size:10px; font-weight:850;
+}
+
+.meter { display:grid; grid-template-columns:76px 1fr; gap:14px; align-items:center; margin-top:16px; }
+.ring {
+  width:76px; height:76px; border-radius:50%;
+  display:grid; place-items:center;
+  background:conic-gradient(var(--accent) 0%, var(--surface3) 0%);
+  position:relative;
+}
+.ring::after { content:""; position:absolute; inset:8px; border-radius:50%; background:var(--surface); }
+.ring span { position:relative; z-index:2; font-weight:800; font-size:18px; color:var(--accent); }
+.metricgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.metric {
+  background:color-mix(in srgb, var(--surface) 88%, transparent);
+  border:1px solid color-mix(in srgb, var(--text) 7%, transparent);
+  border-radius:14px;
+  padding:10px;
+}
+.metric b { display:block; font-size:18px; color:var(--accent); }
+.metric span { color:var(--muted); font-size:11px; }
+
+.searchbar { display:flex; gap:8px; margin:12px 0 10px; }
+.searchbar input { flex:1; }
+input[type="text"],input[type="number"],input[type="search"],select {
+  width:100%; border:1px solid var(--line); background:var(--surface2); color:var(--text);
+  border-radius:13px; padding:11px 12px; outline:none;
+}
+input:focus,select:focus { border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.filterrow { display:flex; gap:8px; overflow:auto; padding:2px 0 4px; scrollbar-width:none; }
+.filterrow::-webkit-scrollbar { display:none; }
+.chip {
+  flex:0 0 auto; border:1px solid var(--line); background:var(--surface); color:var(--muted);
+  border-radius:999px; padding:8px 12px; cursor:pointer; font-size:13px;
+}
+.chip.active { color:#fff; background:var(--accent); border-color:var(--accent); font-weight:800; }
+
+.addpanel {
+  display:none; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:14px; margin:14px 0; box-shadow:var(--shadow);
+}
+.addpanel.open { display:block; }
+.addpanel h2 { font-size:16px; margin:0 0 4px; color:var(--accent); }
+.addpanel .monthhint { color:var(--muted); font-size:11px; margin-bottom:10px; }
+.addgrid { display:grid; grid-template-columns:1.5fr 1fr .7fr 1fr; gap:8px; }
+.addgrid2 { display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:8px; }
+.addactions { display:flex; gap:8px; align-items:stretch; }
+.addactions .btn { min-width:92px; }
+.btn {
+  border:1px solid var(--line); background:var(--surface2); color:var(--text);
+  border-radius:13px; padding:10px 12px; cursor:pointer; transition:.15s ease;
+}
+.btn:hover { border-color:color-mix(in srgb, var(--accent) 42%, var(--line)); background:var(--surface3); }
+.btn.primary { color:#fff; background:linear-gradient(145deg,var(--accent),var(--accent2)); border-color:transparent; }
+.btn.small { padding:7px 9px; border-radius:10px; font-size:12px; }
+.btn.danger { color:#FFC5BA; border-color:#71443C; background:#3B2521; }
+
+.category {
+  --cat:var(--accent2); --catSoft:color-mix(in srgb, var(--accent2) 10%, var(--surface));
+  background:var(--surface); border:1px solid var(--line); border-left:5px solid var(--cat);
+  border-radius:var(--radius); margin:14px 0; overflow:hidden; box-shadow:0 10px 24px rgba(0,0,0,.18);
+}
+.category[data-cat="Main Meats"],.category[data-cat="Other Protein Foods"] { --cat:#D98368; --catSoft:#33201C; }
+.category[data-cat="Carbs & Training Fuel"] { --cat:#D9AD62; --catSoft:#30291A; }
+.category[data-cat="Vegetables"],.category[data-cat="Fruit & Fiber Foods"] { --cat:#8FBA86; --catSoft:#1E2B1D; }
+.category[data-cat="Fats & Extras"] { --cat:#B68E61; --catSoft:#2F271D; }
+.category[data-cat="Sauces & Seasonings"] { --cat:#D36D58; --catSoft:#321F1A; }
+.category[data-cat="Snacks & Drinks"] { --cat:#8EA47D; --catSoft:#232A20; }
+.category[data-cat="Household Items"] { --cat:#60A5FA; --catSoft:#182636; }
+.category[data-cat="Other"] { --cat:#A598AA; --catSoft:#29252B; }
+.category-head {
+  width:100%; display:flex; justify-content:space-between; align-items:center; gap:10px;
+  border:0; color:var(--text); background:linear-gradient(180deg,var(--catSoft),var(--surface)); padding:14px 15px; cursor:pointer;
+}
+.cat-left { display:flex; align-items:center; gap:10px; text-align:left; }
+.cat-icon {
+  width:36px; height:36px; border-radius:12px; display:grid; place-items:center;
+  background:var(--surface2); font-size:19px; border:1px solid color-mix(in srgb, var(--text) 7%, transparent);
+}
+.cat-title { font-weight:800; font-size:15px; }
+.cat-sub { color:var(--muted); font-size:11px; margin-top:2px; }
+.chev { color:var(--cat); transition:.2s; }
+.category.collapsed .chev { transform:rotate(-90deg); }
+.category.collapsed .items { display:none; }
+.item { padding:13px 14px; border-top:1px solid color-mix(in srgb, var(--text) 7%, transparent); transition:.15s ease; }
+.item.complete { background:linear-gradient(90deg,rgba(127,163,110,.13),transparent); }
+.item.off { background:linear-gradient(90deg,rgba(155,145,133,.08),transparent); }
+.item.off .item-name,.item.off .item-meta,.item.off .havebox,.item.off .stepbtn,.item.off .donebtn { opacity:.58; }
+.item.off .removequick,.item.off .morebtn,.item.off .details,.item.off .badge { opacity:1; }
+.item-main { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.item-head-actions { display:flex; align-items:center; gap:7px; flex:0 0 auto; }
+.removequick {
+  width:32px; height:32px; border-radius:10px; border:1px solid #71443C;
+  background:#3B2521; color:#FFC5BA; cursor:pointer; font-size:15px; line-height:1;
+}
+.removequick:active { transform:scale(.96); }
+.item-name { font-weight:760; line-height:1.25; }
+.item-meta { color:var(--muted); font-size:11px; margin-top:4px; line-height:1.35; }
+.badge {
+  flex:0 0 auto; border-radius:999px; padding:6px 9px; font-size:11px; font-weight:800;
+  color:#F0B09F; background:#3A2622; border:1px solid #70463D;
+}
+.item.complete .badge { color:#C4DEBC; background:#273226; border-color:#52644D; }
+.item.off .badge { color:#B1A59B; background:#2A2826; border-color:#4A443F; }
+.quickrow { display:grid; grid-template-columns:1fr auto auto auto; gap:8px; align-items:center; margin-top:11px; }
+.havebox {
+  display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:42px;
+  border:1px solid var(--line); border-radius:13px; background:var(--surface2); padding:5px 8px 5px 11px;
+}
+.havebox small { color:var(--muted); display:block; font-size:10px; }
+.havebox b { display:block; margin-top:1px; color:var(--accent); }
+.stepbtn,.morebtn {
+  width:42px; height:42px; border-radius:12px; border:1px solid var(--line);
+  background:var(--surface2); color:var(--text); cursor:pointer;
+}
+.stepbtn { font-size:20px; }
+.stepbtn:active { transform:scale(.96); }
+.morebtn { color:var(--muted); font-size:18px; }
+.donebtn {
+  min-width:78px; height:42px; border-radius:12px; border:1px solid color-mix(in srgb, var(--success) 70%, var(--line));
+  background:#273226; color:#C4DEBC; font-weight:760; cursor:pointer;
+}
+.details { display:none; margin-top:10px; padding:11px; background:color-mix(in srgb, var(--bg) 62%, var(--surface)); border:1px solid var(--line); border-radius:13px; }
+.details.open { display:block; }
+.details-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.field label { display:block; font-size:10px; color:var(--muted); margin:0 0 4px 2px; }
+.detail-actions { display:flex; gap:7px; flex-wrap:wrap; margin-top:9px; }
+
+.empty {
+  padding:34px 22px; text-align:center; color:var(--muted); background:var(--surface);
+  border:1px dashed color-mix(in srgb, var(--accent) 35%, var(--line)); border-radius:var(--radius); margin-top:14px;
+}
+.empty .emptyicon { font-size:34px; display:block; margin-bottom:8px; }
+.empty b { color:var(--text); display:block; margin-bottom:4px; }
+.empty button { margin-top:12px; }
+
+.fab {
+  position:fixed; right:18px; bottom:calc(20px + env(safe-area-inset-bottom)); z-index:40;
+  width:58px; height:58px; border:0; border-radius:18px;
+  background:linear-gradient(145deg,var(--accent),var(--accent2)); color:#fff;
+  font-size:30px; font-weight:500; box-shadow:0 16px 36px rgba(0,0,0,.36); cursor:pointer;
+}
+.fab:active { transform:scale(.96); }
+.toast {
+  position:fixed; left:50%; bottom:calc(90px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(20px);
+  background:#0B0C0B; color:#fff; border:1px solid var(--line); border-radius:12px; padding:10px 14px;
+  font-size:13px; opacity:0; pointer-events:none; transition:.2s; z-index:60; box-shadow:var(--shadow);
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+
+.topactions { display:flex; align-items:center; gap:8px; }
+.settingspanel {
+  display:none; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:15px; margin:14px 0; box-shadow:var(--shadow);
+}
+.settingspanel.open { display:block; }
+.settings-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.settings-head h2 { margin:0; font-size:17px; color:var(--accent); }
+.settings-head p { margin:3px 0 0; color:var(--muted); font-size:11px; }
+.closebtn { width:36px; height:36px; border-radius:11px; border:1px solid var(--line); background:var(--surface2); color:var(--text); cursor:pointer; }
+.statusgrid { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:10px; }
+.statuscard { padding:11px; border:1px solid var(--line); background:var(--surface2); border-radius:14px; }
+.statuscard span { display:block; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.08em; }
+.statuscard b { display:block; margin-top:4px; font-size:14px; color:var(--text); }
+.backupgrid { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:10px; }
+.backupbtn { text-align:left; min-height:68px; }
+.backupbtn b { display:block; margin-bottom:3px; }
+.backupbtn small { display:block; color:var(--muted); line-height:1.25; }
+.settings-note { margin:11px 1px 0; color:var(--muted); font-size:11px; line-height:1.45; }
+.settings-note strong { color:var(--text); }
+.appearancebox { margin-top:11px; padding:12px; border:1px solid var(--line); background:var(--surface2); border-radius:14px; }
+.appearance-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; margin-bottom:9px; }
+.appearance-head b { color:var(--text); font-size:13px; }
+.appearance-head small { color:var(--muted); font-size:10px; line-height:1.35; text-align:right; }
+.appearance-options { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+.appearance-option { border:1px solid var(--line); background:var(--surface); color:var(--muted); border-radius:11px; padding:9px 7px; font-weight:800; font-size:11px; cursor:pointer; }
+.appearance-option.active { color:var(--text); border-color:color-mix(in srgb,var(--accent) 68%,var(--line)); background:color-mix(in srgb,var(--accent) 12%,var(--surface)); box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 15%,transparent) inset; }
+.appearance-option span { display:block; font-size:16px; margin-bottom:2px; }
+@media (max-width:420px) { .appearance-options { grid-template-columns:1fr; } .appearance-option span { display:inline; margin-right:5px; } }
+.installbox { margin-top:11px; padding:11px; border-radius:14px; border:1px solid color-mix(in srgb, var(--accent) 28%, var(--line)); background:color-mix(in srgb, var(--accent) 8%, var(--surface2)); }
+.installbox b { color:var(--accent); }
+.installbox p { color:var(--muted); font-size:11px; line-height:1.45; margin:5px 0 0; }
+.recoverybox { margin-top:11px; border-top:1px solid var(--line); padding-top:11px; }
+.recoverybox summary { cursor:pointer; color:var(--muted); font-size:12px; font-weight:800; }
+.recovery-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.offline-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--danger); margin-right:6px; vertical-align:1px; }
+.offline-dot.ready { background:var(--success); }
+@media (max-width:520px) {
+  .statusgrid,.backupgrid { grid-template-columns:1fr; }
+}
+
+@media (max-width:720px) {
+  .addgrid { grid-template-columns:1fr 1fr; }
+  .metricgrid { grid-template-columns:repeat(3,1fr); }
+  .monthtab { min-width:66px; }
+}
+@media (max-width:520px) {
+  .shell { padding-left:11px; padding-right:11px; }
+  .topbar { margin-left:-11px; margin-right:-11px; padding-left:11px; padding-right:11px; }
+  .meter { grid-template-columns:64px 1fr; }
+  .ring { width:64px; height:64px; }
+  .ring::after { inset:7px; }
+  .metric b { font-size:16px; }
+  .quickrow { grid-template-columns:1fr 42px 42px; }
+  .donebtn { grid-column:1 / -1; }
+  .addgrid,.addgrid2,.details-grid { grid-template-columns:1fr; }
+  .addactions { width:100%; }
+  .addactions .btn { flex:1; }
+  .brand p { display:none; }
+  .themebadge { display:none; }
+  .themename { font-size:19px; }
+}
+@media print {
+  body { background:white; color:black; }
+  .topbar,.fab,.filterrow,.searchbar,.addpanel,.morebtn,.stepbtn,.donebtn { display:none!important; }
+  .hero,.category { box-shadow:none; border-color:#bbb; break-inside:avoid; }
+  .category { border-left-color:#999; }
+  .category-head { background:white; color:black; }
+  .item { border-color:#ddd; }
+  .item-meta,.cat-sub,.themedesc { color:#555; }
+}
+
+.remove-confirm-overlay {
+  position:fixed; inset:0; z-index:250; display:grid; place-items:center; padding:20px;
+  background:rgba(0,0,0,.68); backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px);
+}
+.remove-confirm-overlay[hidden] { display:none !important; }
+.remove-confirm-card {
+  width:min(420px,100%); background:var(--surface); color:var(--text); border:1px solid var(--line);
+  border-radius:20px; padding:18px; box-shadow:0 24px 70px rgba(0,0,0,.48);
+}
+.remove-confirm-icon { font-size:30px; margin-bottom:8px; }
+.remove-confirm-card h3 { margin:0 0 7px; font-size:20px; }
+.remove-confirm-card p { margin:0; color:var(--muted); line-height:1.45; }
+.remove-confirm-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px; }
+.remove-confirm-actions button { min-height:46px; touch-action:manipulation; }
+body.modal-open { overflow:hidden; }
+
+/* Saved-food memory + copy-to-month modal */
+.saved-food-row {
+  display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; margin:8px 0 10px;
+}
+.saved-food-row select { min-width:0; }
+.saved-food-note { color:var(--muted); font-size:10px; margin:-3px 0 10px; line-height:1.35; }
+.copy-month-grid {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:14px; max-height:42vh; overflow:auto;
+}
+.copy-month-option {
+  display:flex; align-items:center; gap:9px; min-height:44px; padding:9px 10px; border:1px solid var(--line);
+  border-radius:12px; background:var(--surface2); color:var(--text); cursor:pointer;
+}
+.copy-month-option input { width:18px; height:18px; accent-color:var(--accent); flex:0 0 auto; }
+.copy-month-option.disabled { opacity:.48; cursor:not-allowed; }
+.copy-month-option .copy-month-name { font-size:12px; font-weight:800; }
+.copy-month-option .copy-month-status { display:block; color:var(--muted); font-size:9px; margin-top:1px; }
+.copy-tools { display:flex; justify-content:flex-end; margin-top:10px; }
+@media (max-width:560px){
+  .saved-food-row { grid-template-columns:1fr; }
+  .copy-month-grid { grid-template-columns:1fr 1fr; }
+}
+
+
+/* Seasoned AI + integrations */
+.integration-box {
+  margin-top:14px; padding:14px; border:1px solid var(--line); border-radius:16px;
+  background:linear-gradient(145deg,var(--surface2),var(--surface));
+}
+.integration-box h3 { margin:0 0 4px; font-size:15px; }
+.integration-box > p { margin:0 0 12px; color:var(--muted); font-size:11px; line-height:1.45; }
+.integration-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.integration-card { border:1px solid var(--line); border-radius:13px; padding:11px; background:var(--surface); }
+.integration-card .integration-title { display:flex; align-items:center; justify-content:space-between; gap:8px; font-weight:800; font-size:12px; }
+.integration-state { font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase; letter-spacing:.06em; }
+.integration-state.ok { color:var(--success); }
+.integration-state.bad { color:var(--danger); }
+.integration-card p { margin:6px 0 10px; color:var(--muted); font-size:10px; line-height:1.4; }
+.integration-config { display:grid; grid-template-columns:1fr; gap:8px; margin-top:12px; }
+.integration-config input { width:100%; border:1px solid var(--line); background:var(--surface); color:var(--text); border-radius:11px; padding:11px; }
+.integration-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:9px; }
+.integration-help { margin-top:8px; font-size:9px; color:var(--muted); line-height:1.45; }
+.ai-overlay { position:fixed; inset:0; z-index:80; background:rgba(0,0,0,.64); backdrop-filter:blur(9px); display:flex; align-items:flex-end; justify-content:center; padding:12px; }
+.ai-overlay[hidden] { display:none; }
+.ai-sheet { width:min(720px,100%); max-height:min(88vh,850px); overflow:auto; border:1px solid var(--line); border-radius:22px 22px 14px 14px; background:var(--bg); box-shadow:var(--shadow); padding:15px; }
+.ai-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.ai-head h2 { margin:0; font-size:20px; }
+.ai-head p { margin:3px 0 0; color:var(--muted); font-size:10px; }
+.ai-nutrition-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:7px; margin:10px 0 12px; }
+.ai-metric { padding:9px 6px; border:1px solid var(--line); border-radius:12px; background:var(--surface); text-align:center; }
+.ai-metric b { display:block; font-size:14px; }
+.ai-metric span { display:block; margin-top:2px; color:var(--muted); font-size:8px; text-transform:uppercase; letter-spacing:.06em; }
+.ai-quick-actions { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:10px; }
+.ai-answer { min-height:108px; white-space:pre-wrap; border:1px solid var(--line); border-radius:14px; padding:12px; background:var(--surface); color:var(--text); font-size:12px; line-height:1.5; }
+.ai-answer.muted { color:var(--muted); }
+.ai-compose { display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:10px; }
+.ai-compose textarea { resize:vertical; min-height:72px; max-height:170px; border:1px solid var(--line); background:var(--surface); color:var(--text); border-radius:12px; padding:11px; font:inherit; }
+.ai-footnote { margin-top:9px; color:var(--muted); font-size:9px; line-height:1.4; }
+@media (max-width:560px){
+  .integration-grid { grid-template-columns:1fr; }
+  .ai-nutrition-grid { grid-template-columns:repeat(3,1fr); }
+  .ai-compose { grid-template-columns:1fr; }
+}
+
+
+
+/* Seasoned Smart Hub v2 */
+.smart-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 14px;padding:10px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(135deg,color-mix(in srgb,var(--surface) 94%,transparent),color-mix(in srgb,var(--accent) 8%,var(--surface)));box-shadow:var(--shadow)}
+.smart-summary button{background:var(--surface2);border:1px solid var(--line);border-radius:13px;color:var(--text);padding:10px 8px;text-align:left;min-width:0}.smart-summary button b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.smart-summary button span{display:block;color:var(--muted);font-size:9px;margin-top:3px;text-transform:uppercase;letter-spacing:.06em}
+.smart-hub-overlay{position:fixed;inset:0;z-index:85;background:rgba(3,3,8,.72);backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;padding-top:env(safe-area-inset-top)}.smart-hub-overlay[hidden]{display:none}.smart-hub-sheet{width:min(980px,100%);height:min(92dvh,920px);background:var(--bg);border:1px solid var(--line);border-bottom:0;border-radius:24px 24px 0 0;box-shadow:0 -24px 60px rgba(0,0,0,.55);overflow:hidden;display:flex;flex-direction:column}.smart-hub-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 16px 10px;background:var(--surface);border-bottom:1px solid var(--line)}.smart-hub-head h2{margin:0;font-size:20px}.smart-hub-head p{margin:3px 0 0;color:var(--muted);font-size:11px}.smart-tabs{display:flex;gap:7px;overflow:auto;padding:9px 12px;background:var(--surface);border-bottom:1px solid var(--line);scrollbar-width:none}.smart-tabs::-webkit-scrollbar{display:none}.smart-tab{flex:0 0 auto;border:1px solid var(--line);background:var(--surface2);color:var(--muted);padding:8px 11px;border-radius:999px;font-size:11px;font-weight:800}.smart-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}.smart-content{padding:14px 14px calc(28px + env(safe-area-inset-bottom));overflow:auto;flex:1}.smart-section{border:1px solid var(--line);background:var(--surface);border-radius:18px;padding:13px;margin-bottom:12px}.smart-section h3{margin:0 0 4px;font-size:15px}.smart-section>p{margin:0 0 12px;color:var(--muted);font-size:11px;line-height:1.45}.smart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.smart-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.smart-metric{border:1px solid var(--line);background:var(--surface2);border-radius:13px;padding:10px;min-width:0}.smart-metric b{display:block;font-size:16px;overflow:hidden;text-overflow:ellipsis}.smart-metric span{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}.smart-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.smart-form .wide{grid-column:1/-1}.smart-form input,.smart-form select,.smart-form textarea,.smart-table input,.smart-table select{width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--line);border-radius:11px;padding:10px;font-size:12px}.smart-form textarea{min-height:88px;resize:vertical}.smart-list{display:grid;gap:8px}.smart-row{border:1px solid var(--line);background:var(--surface2);border-radius:13px;padding:10px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.smart-row-main{min-width:0}.smart-row-main b{display:block;font-size:12px}.smart-row-main small{color:var(--muted);display:block;margin-top:3px;line-height:1.35}.smart-row-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.smart-pill{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);background:var(--surface3);border-radius:999px;padding:3px 7px;font-size:9px;margin:3px 3px 0 0}.smart-pill.warn{border-color:#b87928;color:#ffd18d}.smart-pill.bad{border-color:var(--danger);color:#ffb7aa}.smart-pill.ok{border-color:var(--success);color:#cfe8c5}.smart-empty{color:var(--muted);font-size:11px;padding:14px;text-align:center;border:1px dashed var(--line);border-radius:12px}.smart-table{width:100%;border-collapse:separate;border-spacing:0 7px;font-size:10px}.smart-table th{text-align:left;color:var(--muted);font-size:9px;padding:0 6px}.smart-table td{background:var(--surface2);padding:7px 6px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);vertical-align:middle}.smart-table td:first-child{border-left:1px solid var(--line);border-radius:10px 0 0 10px}.smart-table td:last-child{border-right:1px solid var(--line);border-radius:0 10px 10px 0}.smart-week{display:grid;gap:8px}.smart-day{display:grid;grid-template-columns:90px 1fr;gap:8px;border:1px solid var(--line);background:var(--surface2);border-radius:13px;padding:9px}.smart-day-title b{font-size:11px}.smart-day-title label{display:block;color:var(--muted);font-size:9px;margin-top:6px}.smart-day-meals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.smart-day-meals select{width:100%;background:var(--surface3);color:var(--text);border:1px solid var(--line);border-radius:9px;padding:8px;font-size:10px}.score-ring{width:106px;height:106px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--accent) var(--score,0%),var(--surface3) 0);position:relative}.score-ring:after{content:"";position:absolute;inset:11px;border-radius:50%;background:var(--surface)}.score-ring b{position:relative;z-index:1;font-size:25px}.score-wrap{display:flex;align-items:center;gap:16px}.capture-preview{max-width:100%;max-height:240px;border-radius:12px;border:1px solid var(--line);display:none;margin:8px 0}.smart-note{font-size:10px;color:var(--muted);line-height:1.45}.clear-month-box{margin-top:12px;padding:12px;border:1px solid color-mix(in srgb,var(--danger) 60%,var(--line));background:color-mix(in srgb,var(--danger) 8%,var(--surface));border-radius:14px}.clear-month-box h3{margin:0 0 4px;font-size:13px}.clear-month-box p{margin:0 0 10px;color:var(--muted);font-size:10px}
+@media(max-width:700px){.smart-summary{grid-template-columns:1fr 1fr}.smart-metrics{grid-template-columns:1fr 1fr}.smart-grid,.smart-form{grid-template-columns:1fr}.smart-day{grid-template-columns:1fr}.smart-day-meals{grid-template-columns:1fr}.smart-table{display:block;overflow:auto}.smart-hub-sheet{height:94dvh}.smart-summary button b{font-size:13px}}
+
+
+/* =========================================================
+   Seasoned v2.2 — motion + polish pass
+   Subtle, performance-friendly UI refinement.
+   ========================================================= */
+:root {
+  --ease-out:cubic-bezier(.22,1,.36,1);
+  --ease-soft:cubic-bezier(.2,.8,.2,1);
+  --focus-ring:0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent);
+}
+html { -webkit-text-size-adjust:100%; }
+body {
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  line-height:1.45;
+}
+::selection { background:color-mix(in srgb, var(--accent) 36%, transparent); color:var(--text); }
+
+/* Clear, consistent keyboard focus without cluttering touch UI. */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline:none;
+  box-shadow:var(--focus-ring);
+  border-color:color-mix(in srgb, var(--accent) 72%, var(--line));
+}
+button { transition:transform .14s var(--ease-out), border-color .18s ease, background .18s ease, color .18s ease, box-shadow .18s ease, opacity .18s ease; }
+button:disabled { cursor:not-allowed; opacity:.48; transform:none!important; }
+input, select, textarea {
+  background:var(--surface2);
+  color:var(--text);
+  border:1px solid var(--line);
+  transition:border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+input::placeholder, textarea::placeholder { color:color-mix(in srgb, var(--muted) 76%, transparent); }
+input:focus, select:focus, textarea:focus { background:color-mix(in srgb, var(--surface2) 88%, var(--accent) 12%); }
+
+/* App chrome */
+.topbar {
+  box-shadow:0 8px 26px rgba(0,0,0,.10);
+  transition:box-shadow .2s ease, background .25s ease, border-color .25s ease;
+}
+.logo { transition:transform .22s var(--ease-out), background .25s ease, box-shadow .25s ease; }
+.iconbtn, .closebtn { transition:transform .14s var(--ease-out), background .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.monthtabs { overscroll-behavior-x:contain; }
+.monthtab { transition:transform .18s var(--ease-out), background .22s ease, color .22s ease, border-color .22s ease, box-shadow .22s ease; }
+.monthtab.active { animation:seasonedTabPop .24s var(--ease-out); }
+
+/* Main planner polish */
+.hero {
+  position:relative;
+  overflow:hidden;
+  transition:background .3s ease,border-color .3s ease,box-shadow .25s ease,transform .25s var(--ease-out);
+}
+.hero::before {
+  content:"";
+  position:absolute;
+  inset:-40% auto auto -12%;
+  width:190px;
+  height:190px;
+  border-radius:50%;
+  background:radial-gradient(circle, color-mix(in srgb, var(--accent) 13%, transparent), transparent 68%);
+  pointer-events:none;
+}
+.themeemoji { transition:transform .25s var(--ease-out), background .25s ease, border-color .25s ease; }
+.ring { transition:filter .22s ease, transform .22s var(--ease-out); }
+.searchbar input { box-shadow:inset 0 1px 0 color-mix(in srgb, white 3%, transparent); }
+.filterrow { scroll-padding-inline:8px; }
+.chip { transition:transform .14s var(--ease-out), background .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease; }
+.chip.active { box-shadow:0 7px 18px color-mix(in srgb, var(--accent) 20%, transparent); }
+
+.category {
+  transition:transform .2s var(--ease-out), box-shadow .22s ease, border-color .22s ease;
+  contain:layout paint;
+}
+.category-head { transition:background .2s ease; }
+.cat-icon { transition:transform .18s var(--ease-out), border-color .18s ease, background .18s ease; }
+.chev { transition:transform .22s var(--ease-out), color .2s ease; }
+.item { transition:background .18s ease, opacity .18s ease; }
+.badge { transition:transform .18s var(--ease-out), background .18s ease, border-color .18s ease, color .18s ease; }
+.stepbtn, .donebtn, .morebtn, .removequick { transition:transform .13s var(--ease-out), background .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.details.open { animation:seasonedReveal .18s var(--ease-out) both; transform-origin:top center; }
+.addpanel.open, .settingspanel.open { animation:seasonedPanelIn .22s var(--ease-out) both; transform-origin:top center; }
+.empty { animation:seasonedFadeUp .22s var(--ease-out) both; }
+.fab { transition:transform .16s var(--ease-out), box-shadow .2s ease, filter .2s ease; }
+.toast { min-width:min(300px,calc(100vw - 34px)); text-align:center; transition:opacity .2s ease, transform .24s var(--ease-out); }
+.toast.show { box-shadow:0 14px 34px rgba(0,0,0,.38); }
+
+/* Month change animation only; regular quantity edits remain still. */
+body.month-transitioning .hero { animation:seasonedMonthHero .28s var(--ease-out) both; }
+body.month-transitioning #list { animation:seasonedFadeUp .25s var(--ease-out) both; }
+body.month-transitioning .themeemoji { animation:seasonedEmojiPop .3s var(--ease-out) both; }
+
+/* Overlay/sheet polish */
+.remove-confirm-overlay:not([hidden]),
+.smart-hub-overlay:not([hidden]),
+.ai-overlay:not([hidden]) { animation:seasonedOverlayIn .18s ease-out both; }
+.remove-confirm-overlay:not([hidden]) .remove-confirm-card { animation:seasonedDialogIn .22s var(--ease-out) both; }
+.smart-hub-overlay:not([hidden]) .smart-hub-sheet,
+.ai-overlay:not([hidden]) .ai-sheet { animation:seasonedSheetIn .28s var(--ease-out) both; }
+.smart-hub-sheet, .ai-sheet { box-shadow:0 -26px 70px rgba(0,0,0,.48); }
+.smart-tab { transition:transform .14s var(--ease-out), background .18s ease, color .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.smart-tab.active { box-shadow:0 6px 16px color-mix(in srgb, var(--accent) 18%, transparent); }
+.smart-content > * { animation:seasonedFadeUp .2s var(--ease-out) both; }
+.smart-section, .integration-card, .statuscard { transition:border-color .18s ease, background .18s ease, transform .18s var(--ease-out), box-shadow .18s ease; }
+.copy-month-option { transition:transform .14s var(--ease-out), background .18s ease, border-color .18s ease; }
+
+/* Small tactile states on pointer devices and touch. */
+.iconbtn:active, .closebtn:active, .monthtab:active, .chip:active, .btn:active,
+.stepbtn:active, .donebtn:active, .morebtn:active, .fab:active, .smart-tab:active,
+.category-head:active, .copy-month-option:active { transform:scale(.97); }
+.fab:active { transform:scale(.94); }
+
+@media (hover:hover) and (pointer:fine) {
+  .logo:hover { transform:translateY(-1px) rotate(-2deg); box-shadow:0 11px 28px rgba(0,0,0,.28); }
+  .iconbtn:hover, .closebtn:hover { transform:translateY(-1px); background:var(--surface2); border-color:color-mix(in srgb, var(--accent) 34%, var(--line)); }
+  .monthtab:hover:not(.active) { transform:translateY(-1px); color:var(--text); border-color:color-mix(in srgb, var(--accent) 28%, var(--line)); }
+  .chip:hover:not(.active) { transform:translateY(-1px); color:var(--text); border-color:color-mix(in srgb, var(--accent) 30%, var(--line)); }
+  .hero:hover { box-shadow:0 18px 42px rgba(0,0,0,.36); }
+  .category:hover { transform:translateY(-1px); box-shadow:0 13px 30px rgba(0,0,0,.22); }
+  .category-head:hover .cat-icon { transform:scale(1.04); border-color:color-mix(in srgb, var(--cat) 28%, var(--line)); }
+  .item:hover { background:color-mix(in srgb, var(--surface2) 35%, transparent); }
+  .item.complete:hover { background:linear-gradient(90deg,rgba(127,163,110,.16),color-mix(in srgb,var(--surface2) 24%,transparent)); }
+  .btn:hover, .stepbtn:hover, .donebtn:hover, .morebtn:hover { transform:translateY(-1px); }
+  .fab:hover { transform:translateY(-2px) scale(1.02); box-shadow:0 20px 42px rgba(0,0,0,.42); filter:saturate(1.08); }
+  .smart-tab:hover:not(.active), .copy-month-option:hover:not(.disabled) { transform:translateY(-1px); border-color:color-mix(in srgb, var(--accent) 30%, var(--line)); }
+  .smart-section:hover, .integration-card:hover, .statuscard:hover { border-color:color-mix(in srgb, var(--accent) 18%, var(--line)); }
+}
+
+/* Mobile spacing cleanup */
+@media (max-width:560px) {
+  .shell { padding-left:12px; padding-right:12px; }
+  .topbar { margin-left:-12px; margin-right:-12px; padding-left:12px; padding-right:12px; }
+  .brand { gap:10px; }
+  .brand p { font-size:11px; }
+  .monthtab { min-width:64px; padding:8px 9px; }
+  .hero { border-radius:20px; padding:14px; }
+  .themebadge { display:none; }
+  .themename { font-size:19px; }
+  .category { border-radius:16px; margin:12px 0; }
+  .category-head { padding:13px; }
+  .item { padding:12px; }
+  .quickrow { gap:7px; }
+  .fab { right:14px; width:56px; height:56px; border-radius:17px; }
+}
+
+/* Respect iOS/macOS accessibility settings. */
+@media (prefers-reduced-motion:reduce) {
+  *, *::before, *::after {
+    scroll-behavior:auto!important;
+    animation-duration:.001ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.001ms!important;
+  }
+}
+
+@keyframes seasonedTabPop { from{transform:translateY(0) scale(.97)} to{transform:translateY(-1px) scale(1)} }
+@keyframes seasonedReveal { from{opacity:0; transform:translateY(-5px) scaleY(.985)} to{opacity:1; transform:none} }
+@keyframes seasonedPanelIn { from{opacity:0; transform:translateY(-7px) scale(.992)} to{opacity:1; transform:none} }
+@keyframes seasonedFadeUp { from{opacity:0; transform:translateY(7px)} to{opacity:1; transform:none} }
+@keyframes seasonedMonthHero { from{opacity:.55; transform:translateY(4px) scale(.993)} to{opacity:1; transform:none} }
+@keyframes seasonedEmojiPop { 0%{transform:scale(.88) rotate(-4deg)} 100%{transform:none} }
+@keyframes seasonedOverlayIn { from{opacity:0} to{opacity:1} }
+@keyframes seasonedDialogIn { from{opacity:0; transform:translateY(10px) scale(.975)} to{opacity:1; transform:none} }
+@keyframes seasonedSheetIn { from{opacity:.7; transform:translateY(26px)} to{opacity:1; transform:none} }
+
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div class="brandrow">
+      <div class="brand">
+        <div class="logo" id="brandLogo">🛒</div>
+        <div>
+          <h1>Seasoned</h1>
+          <p>12-month grocery planner · seasonal light & dark themes</p>
+        </div>
+      </div>
+      <div class="topactions">
+        <button class="iconbtn" id="aiTop" title="Seasoned AI" aria-label="Open Seasoned AI">✨</button>
+        <button class="iconbtn" id="smartHubBtn" title="Seasoned Smart Hub" aria-label="Seasoned Smart Hub">🧠</button>
+        <button class="iconbtn" id="settingsBtn" title="Backup & app settings" aria-label="Backup and app settings">⚙️</button>
+        <button class="iconbtn" id="addTop" title="Add food">＋</button>
+      </div>
+    </div>
+    <div class="monthtabs" id="monthTabs" aria-label="Months"></div>
+  </div>
+
+  <section class="hero">
+    <div class="themehead">
+      <div class="themeidentity">
+        <div class="themeemoji" id="themeEmoji">🎃</div>
+        <div>
+          <div class="thememonth" id="themeMonth">October</div>
+          <div class="themename" id="themeName">Halloween Night</div>
+          <div class="themedesc" id="themeDesc">Pumpkin orange, midnight purple, and deep black.</div>
+        </div>
+      </div>
+      <div class="themebadge" id="themeBadge">MONTHLY THEME</div>
+    </div>
+
+    <div class="meter">
+      <div class="ring" id="ring"><span id="ringPct">0%</span></div>
+      <div class="metricgrid">
+        <div class="metric"><b id="completeN">0</b><span>complete</span></div>
+        <div class="metric"><b id="neededN">0</b><span>still need</span></div>
+        <div class="metric"><b id="unusedN">0</b><span>not this month</span></div>
+      </div>
+    </div>
+  </section>
+
+
+  <div class="searchbar">
+    <input id="search" type="search" placeholder="Search this month…">
+  </div>
+
+  <div class="filterrow">
+    <button class="chip active" data-filter="all">All</button>
+    <button class="chip" data-filter="needed">Need</button>
+    <button class="chip" data-filter="complete">Complete</button>
+    <button class="chip" data-filter="unused">Not This Month</button>
+  </div>
+
+  <section class="addpanel" id="addPanel">
+    <h2>Add an item</h2>
+    <div class="monthhint" id="addMonthHint">Adding to October</div>
+    <div class="saved-food-row">
+      <select id="savedFoodSelect" aria-label="Choose a saved item">
+        <option value="">Choose a remembered item…</option>
+      </select>
+      <button class="btn small" id="clearSavedFood" type="button">Start blank</button>
+    </div>
+    <div class="saved-food-note">Seasoned remembers items you add. Pick one here to reuse its category, target, unit, and note in another month.</div>
+    <div class="addgrid">
+      <input id="addName" type="text" placeholder="Item name">
+      <select id="addCategory">
+        <option>Main Meats</option>
+        <option>Other Protein Foods</option>
+        <option>Carbs & Training Fuel</option>
+        <option>Vegetables</option>
+        <option>Fruit & Fiber Foods</option>
+        <option>Fats & Extras</option>
+        <option>Sauces & Seasonings</option>
+        <option>Snacks & Drinks</option>
+        <option>Household Items</option>
+        <option>Other</option>
+      </select>
+      <input id="addTarget" type="number" min="0" step="1" value="1" placeholder="Target">
+      <input id="addUnit" type="text" placeholder="Unit (boxes, bags, lb…)">
+    </div>
+    <div class="addgrid2">
+      <input id="addNote" type="text" placeholder="Optional note">
+      <div class="addactions">
+        <button class="btn" id="cancelAdd" type="button">Cancel</button>
+        <button class="btn primary" id="addFood" type="button">Add item</button>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="settingspanel" id="settingsPanel">
+    <div class="settings-head">
+      <div>
+        <h2>App & Backup</h2>
+        <p>Offline status, iPhone install, backup, restore, and recovery.</p>
+      </div>
+      <button class="closebtn" id="closeSettings" aria-label="Close settings">✕</button>
+    </div>
+
+    <div class="statusgrid">
+      <div class="statuscard"><span>App mode</span><b id="appModeStatus">Checking…</b></div>
+      <div class="statuscard"><span>Offline cache</span><b id="offlineStatus"><span class="offline-dot"></span>Checking…</b></div>
+      <div class="statuscard"><span>Last external backup</span><b id="lastBackupStatus">Never</b></div>
+      <div class="statuscard"><span>Local recovery snapshots</span><b id="snapshotStatus">0 saved</b></div>
+    </div>
+
+    <div class="appearancebox">
+      <div class="appearance-head">
+        <div><b>🎨 Appearance</b><div class="smart-note">Keep every month’s seasonal colors, but choose the surface mode.</div></div>
+        <small id="appearanceResolved">Dark</small>
+      </div>
+      <div class="appearance-options" id="appearanceOptions" role="group" aria-label="Appearance mode">
+        <button class="appearance-option" type="button" data-appearance-mode="light" aria-pressed="false"><span>☀️</span>Light</button>
+        <button class="appearance-option" type="button" data-appearance-mode="dark" aria-pressed="false"><span>🌙</span>Dark</button>
+        <button class="appearance-option" type="button" data-appearance-mode="device" aria-pressed="false"><span>📱</span>Same as Device</button>
+      </div>
+    </div>
+
+    <div class="backupgrid">
+      <button class="btn primary backupbtn" id="backupBtn"><b>💾 Backup to Files / iCloud</b><small>Creates one JSON backup for all 12 months. On iPhone, choose Save to Files.</small></button>
+      <label class="btn backupbtn" for="restoreInput"><b>📥 Restore Backup</b><small>Select a JSON backup from Files or iCloud Drive.</small></label>
+      <input id="restoreInput" type="file" accept="application/json,.json" hidden>
+    </div>
+
+    <div class="installbox">
+      <b>📱 Install on iPhone</b>
+      <p id="installHelp">Open this site in Safari → Share → Add to Home Screen. Open it once while online so the offline cache can finish.</p>
+    </div>
+
+    <p class="settings-note"><strong>Automatic saving:</strong> every inventory change is saved on this device. The app also keeps a few local recovery snapshots. External backups are still important because clearing Safari website data or resetting the phone can remove local data.</p>
+
+
+    <div class="integration-box">
+      <h3>✨ Integrations</h3>
+      <p>Connect Seasoned to your private integration backend. API secrets stay on the backend, not inside this PWA.</p>
+
+      <div class="integration-grid">
+        <div class="integration-card">
+          <div class="integration-title"><span>🤖 Seasoned AI</span><span class="integration-state" id="openaiStatus">Not checked</span></div>
+          <p>Uses OpenAI to reason over your grocery inventory, nutrition goals, and connected FatSecret diary.</p>
+          <button class="btn small" id="openAiFromSettings" type="button">Open Seasoned AI</button>
+        </div>
+        <div class="integration-card">
+          <div class="integration-title"><span>🥗 FatSecret</span><span class="integration-state" id="fatsecretStatus">Not checked</span></div>
+          <p>Read your calorie and macro diary so Seasoned can make nutrition-aware grocery suggestions.</p>
+          <div class="integration-actions">
+            <button class="btn small primary" id="connectFatSecretBtn" type="button">Connect FatSecret</button>
+            <button class="btn small" id="disconnectFatSecretBtn" type="button">Disconnect</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="integration-config">
+        <input id="integrationApiUrl" type="url" inputmode="url" placeholder="Backend URL — https://seasoned-api.your-subdomain.workers.dev">
+        <input id="integrationAppToken" type="password" autocomplete="off" placeholder="Personal app token">
+      </div>
+      <div class="integration-actions">
+        <button class="btn small primary" id="saveIntegrationConfig" type="button">Save connection</button>
+        <button class="btn small" id="refreshIntegrationStatus" type="button">Test connection</button>
+      </div>
+      <div class="integration-help">The backend URL and personal app token are saved only on this device and are intentionally excluded from Seasoned backups.</div>
+    </div>
+
+
+    <div class="clear-month-box">
+      <h3>🗓️ Reuse this month next year</h3>
+      <p>Reset only the selected month. Your remembered foods, pantry, recipes, history, integrations, and other months stay intact.</p>
+      <div class="integration-actions">
+        <button class="btn small" id="resetMonthCountsBtn" type="button">Reset quantities only</button>
+        <button class="btn small danger" id="clearMonthBtn" type="button">Clear all items from month</button>
+      </div>
+    </div>
+
+    <details class="recoverybox">
+      <summary>Recovery & reset tools</summary>
+      <div class="recovery-actions">
+        <button class="btn small" id="restoreSnapshotBtn">Restore newest local snapshot</button>
+        <button class="btn small danger" id="resetAllBtn">Reset all planner data</button>
+      </div>
+    </details>
+  </section>
+
+  <main id="list"></main>
+</div>
+
+<button class="fab" id="fab" aria-label="Add item">＋</button>
+<div class="toast" id="toast"></div>
+
+
+<div class="remove-confirm-overlay" id="removeConfirmOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="removeConfirmTitle">
+  <div class="remove-confirm-card">
+    <div class="remove-confirm-icon">🗑️</div>
+    <h3 id="removeConfirmTitle">Remove item?</h3>
+    <p id="removeConfirmText">This item will be removed from the current month.</p>
+    <div class="remove-confirm-actions">
+      <button class="btn" id="cancelRemoveBtn" type="button">Cancel</button>
+      <button class="btn danger" id="confirmRemoveBtn" type="button">Remove item</button>
+    </div>
+  </div>
+</div>
+
+<div class="remove-confirm-overlay" id="copyFoodOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="copyFoodTitle">
+  <div class="remove-confirm-card">
+    <div class="remove-confirm-icon">📋</div>
+    <h3 id="copyFoodTitle">Copy item to other months</h3>
+    <p id="copyFoodText">Choose the months that should get this item. Inventory starts at 0 in copied months.</p>
+    <div class="copy-tools"><button class="btn small" id="selectAllCopyMonths" type="button">Select all available</button></div>
+    <div class="copy-month-grid" id="copyMonthChoices"></div>
+    <div class="remove-confirm-actions">
+      <button class="btn" id="cancelCopyBtn" type="button">Cancel</button>
+      <button class="btn primary" id="confirmCopyBtn" type="button">Copy item</button>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="smart-hub-overlay" id="smartHubOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="smartHubTitle">
+  <div class="smart-hub-sheet">
+    <div class="smart-hub-head">
+      <div><h2 id="smartHubTitle">🧠 Seasoned Smart Hub</h2><p id="smartHubSubtitle">Extras for your monthly grocery list · pantry · meals · budget · insights</p></div>
+      <button class="closebtn" id="closeSmartHub" aria-label="Close Smart Hub">✕</button>
+    </div>
+    <div class="smart-tabs" id="smartTabs">
+      <button class="smart-tab active" data-smart-tab="overview">Overview</button>
+      <button class="smart-tab" data-smart-tab="pantry">Pantry</button>
+      <button class="smart-tab" data-smart-tab="meals">Meals</button>
+      <button class="smart-tab" data-smart-tab="plan">Week Plan</button>
+      <button class="smart-tab" data-smart-tab="budget">Budget</button>
+      <button class="smart-tab" data-smart-tab="insights">Insights</button>
+      <button class="smart-tab" data-smart-tab="capture">Scan & AI</button>
+    </div>
+    <div class="smart-content" id="smartHubContent"></div>
+  </div>
+</div>
+
+<div class="ai-overlay" id="aiOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="aiTitle">
+  <div class="ai-sheet">
+    <div class="ai-head">
+      <div>
+        <h2 id="aiTitle">✨ Seasoned AI</h2>
+        <p>Grocery inventory + nutrition goals + FatSecret diary</p>
+      </div>
+      <button class="closebtn" id="closeAi" aria-label="Close Seasoned AI">✕</button>
+    </div>
+
+    <div class="ai-nutrition-grid">
+      <div class="ai-metric"><b id="aiCalories">—</b><span>Calories</span></div>
+      <div class="ai-metric"><b id="aiProtein">—</b><span>Protein</span></div>
+      <div class="ai-metric"><b id="aiCarbs">—</b><span>Carbs</span></div>
+      <div class="ai-metric"><b id="aiFat">—</b><span>Fat</span></div>
+      <div class="ai-metric"><b id="aiFiber">—</b><span>Fiber</span></div>
+    </div>
+
+    <div class="ai-quick-actions">
+      <button class="btn small" id="refreshNutritionBtn" type="button">↻ Refresh nutrition</button>
+      <button class="btn small primary" id="mealHelpBtn" type="button">🍽️ What should I eat?</button>
+      <button class="btn small" id="groceryIdeasBtn" type="button">🛒 Improve this month</button>
+    </div>
+
+    <div class="ai-answer muted" id="aiAnswer">Connect the integration backend in Settings, then connect FatSecret. Seasoned AI will use your current grocery list and today’s nutrition data when available.</div>
+
+    <div class="ai-compose">
+      <textarea id="aiQuestion" placeholder="Ask Seasoned anything about your meals, macros, or grocery plan…"></textarea>
+      <button class="btn primary" id="sendAiQuestion" type="button">Ask</button>
+    </div>
+    <div class="ai-footnote">Seasoned AI suggestions do not automatically change your grocery list or FatSecret diary. You stay in control.</div>
+  </div>
+</div>
+
+<script>
+const DEFAULT_ITEMS = [{"id": "d0", "category": "Main Meats", "name": "Kirkwood chicken breast family pack", "target": 2, "unit": "packs", "note": "~4.2 lb each", "have": 0, "active": true, "custom": false}, {"id": "d1", "category": "Main Meats", "name": "Simply Nature 93/7 ground beef", "target": 8, "unit": "1-lb packs", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d2", "category": "Main Meats", "name": "Fresh Atlantic salmon sides", "target": 2, "unit": "packs", "note": "~2 lb each", "have": 0, "active": true, "custom": false}, {"id": "d3", "category": "Main Meats", "name": "Top sirloin steak", "target": 2, "unit": "packs", "note": "~1.4 lb each", "have": 0, "active": true, "custom": false}, {"id": "d4", "category": "Other Protein Foods", "name": "Large eggs", "target": 6, "unit": "dozen", "note": "target range 5–6 dozen", "have": 0, "active": true, "custom": false}, {"id": "d5", "category": "Other Protein Foods", "name": "Marketside turkey bacon", "target": 5, "unit": "packs", "note": "target range 4–5", "have": 0, "active": true, "custom": false}, {"id": "d6", "category": "Other Protein Foods", "name": "Canned tuna", "target": 8, "unit": "cans", "note": "target range 6–8", "have": 0, "active": true, "custom": false}, {"id": "d7", "category": "Other Protein Foods", "name": "ON Gold Standard Whey", "target": 1, "unit": "tub", "note": "if needed", "have": 0, "active": true, "custom": false}, {"id": "d8", "category": "Other Protein Foods", "name": "Chobani 20G Vanilla yogurt", "target": 4, "unit": "large tubs", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d9", "category": "Other Protein Foods", "name": "Reduced-fat American cheese", "target": 3, "unit": "packs", "note": "target range 2–3", "have": 0, "active": true, "custom": false}, {"id": "d10", "category": "Carbs & Training Fuel", "name": "Goya jasmine rice", "target": 1, "unit": "5-lb bag", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d11", "category": "Carbs & Training Fuel", "name": "Barilla Protein+ pasta", "target": 4, "unit": "boxes", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d12", "category": "Carbs & Training Fuel", "name": "Sara Lee whole-wheat bread", "target": 3, "unit": "loaves", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d13", "category": "Carbs & Training Fuel", "name": "Idahoan Original mashed potatoes", "target": 2, "unit": "boxes/pouches", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d14", "category": "Carbs & Training Fuel", "name": "White/gold potatoes", "target": 5, "unit": "lb", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d15", "category": "Carbs & Training Fuel", "name": "Aldi/Walmart frozen sweet potatoes", "target": 6, "unit": "bags", "note": "target range 5–6", "have": 0, "active": true, "custom": false}, {"id": "d16", "category": "Carbs & Training Fuel", "name": "Quaker oatmeal", "target": 2, "unit": "boxes", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d17", "category": "Carbs & Training Fuel", "name": "Black beans", "target": 14, "unit": "cans", "note": "target range 12–14", "have": 0, "active": true, "custom": false}, {"id": "d18", "category": "Carbs & Training Fuel", "name": "Zero-net-carb/high-fiber tortillas", "target": 2, "unit": "packs", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d19", "category": "Carbs & Training Fuel", "name": "Pancake mix", "target": 1, "unit": "box", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d20", "category": "Carbs & Training Fuel", "name": "Pancake syrup", "target": 1, "unit": "bottle", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d21", "category": "Vegetables", "name": "Great Value frozen chopped spinach", "target": 4, "unit": "bags", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d22", "category": "Vegetables", "name": "Great Value green beans", "target": 10, "unit": "cans/bags", "note": "target range 8–10", "have": 0, "active": true, "custom": false}, {"id": "d23", "category": "Vegetables", "name": "Broccoli", "target": 5, "unit": "frozen bags", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d24", "category": "Vegetables", "name": "Brussels sprouts", "target": 4, "unit": "bags", "note": "target range 3–4", "have": 0, "active": true, "custom": false}, {"id": "d25", "category": "Vegetables", "name": "Asparagus", "target": 3, "unit": "bags", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d26", "category": "Vegetables", "name": "Pepper & onion blend", "target": 4, "unit": "bags", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d27", "category": "Vegetables", "name": "Carrots", "target": 1, "unit": "2-lb bag", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d28", "category": "Fruit & Fiber Foods", "name": "Great Value Triple Berry / mixed berries", "target": 4, "unit": "lb total", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d29", "category": "Fruit & Fiber Foods", "name": "Bananas", "target": 16, "unit": "count", "note": "target range 12–16", "have": 0, "active": true, "custom": false}, {"id": "d30", "category": "Fruit & Fiber Foods", "name": "Apples", "target": 12, "unit": "count", "note": "target range 10–12", "have": 0, "active": true, "custom": false}, {"id": "d31", "category": "Fruit & Fiber Foods", "name": "Oranges/clementines", "target": 12, "unit": "count", "note": "target range 10–12", "have": 0, "active": true, "custom": false}, {"id": "d32", "category": "Fruit & Fiber Foods", "name": "Chia seeds", "target": 1, "unit": "bag", "note": "optional", "have": 0, "active": true, "custom": false}, {"id": "d33", "category": "Fats & Extras", "name": "Great Value natural peanut butter", "target": 2, "unit": "jars", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d34", "category": "Fats & Extras", "name": "Cooking spray", "target": 2, "unit": "cans", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d35", "category": "Fats & Extras", "name": "I Can’t Believe It’s Not Butter! Light", "target": 1, "unit": "tub", "note": "if needed", "have": 0, "active": true, "custom": false}, {"id": "d36", "category": "Fats & Extras", "name": "Iodized salt", "target": 1, "unit": "container", "note": "if needed", "have": 0, "active": true, "custom": false}, {"id": "d37", "category": "Sauces & Seasonings", "name": "Simply Nature Tomato Basil sauce", "target": 5, "unit": "jars", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d38", "category": "Sauces & Seasonings", "name": "Ketchup", "target": 1, "unit": "bottle", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d39", "category": "Sauces & Seasonings", "name": "Mustard", "target": 1, "unit": "bottle", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d40", "category": "Sauces & Seasonings", "name": "Hot sauce", "target": 2, "unit": "bottles", "note": "target range 1–2", "have": 0, "active": true, "custom": false}, {"id": "d41", "category": "Sauces & Seasonings", "name": "Bragg Liquid Aminos", "target": 1, "unit": "bottle", "note": "if low", "have": 0, "active": true, "custom": false}, {"id": "d42", "category": "Sauces & Seasonings", "name": "Salsa", "target": 1, "unit": "large jar", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d43", "category": "Sauces & Seasonings", "name": "Sazón", "target": 1, "unit": "box", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d44", "category": "Sauces & Seasonings", "name": "Cajun seasoning", "target": 1, "unit": "container", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d45", "category": "Sauces & Seasonings", "name": "Lemon-pepper seasoning", "target": 1, "unit": "container", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d46", "category": "Sauces & Seasonings", "name": "Garlic powder", "target": 1, "unit": "container", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d47", "category": "Sauces & Seasonings", "name": "Onion powder", "target": 1, "unit": "container", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d48", "category": "Sauces & Seasonings", "name": "Paprika", "target": 1, "unit": "container", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d49", "category": "Sauces & Seasonings", "name": "Black pepper", "target": 1, "unit": "container", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d50", "category": "Snacks & Drinks", "name": "Halo Top", "target": 3, "unit": "pints", "note": "target range 2–3", "have": 0, "active": true, "custom": false}, {"id": "d51", "category": "Snacks & Drinks", "name": "Crystal Light", "target": 4, "unit": "boxes", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d52", "category": "Snacks & Drinks", "name": "Root Beer Zero Sugar", "target": 2, "unit": "12-packs", "note": "", "have": 0, "active": true, "custom": false}, {"id": "d53", "category": "Snacks & Drinks", "name": "Sprite Zero Sugar", "target": 2, "unit": "12-packs", "note": "", "have": 0, "active": true, "custom": false}];
+const HOUSEHOLD_ITEMS = [{"id":"h0","category":"Household Items","name":"Toilet paper","target":1,"unit":"pack","note":"","have":0,"active":true,"custom":false},{"id":"h1","category":"Household Items","name":"Dish soap","target":1,"unit":"bottle","note":"","have":0,"active":true,"custom":false},{"id":"h2","category":"Household Items","name":"Paper towels","target":1,"unit":"pack","note":"","have":0,"active":true,"custom":false},{"id":"h3","category":"Household Items","name":"Cat litter","target":1,"unit":"bag/box","note":"","have":0,"active":true,"custom":false},{"id":"h4","category":"Household Items","name":"Cat food","target":1,"unit":"bag/case","note":"","have":0,"active":true,"custom":false},{"id":"h5","category":"Household Items","name":"Shampoo","target":1,"unit":"bottle","note":"","have":0,"active":true,"custom":false},{"id":"h6","category":"Household Items","name":"Conditioner","target":1,"unit":"bottle","note":"","have":0,"active":true,"custom":false},{"id":"h7","category":"Household Items","name":"Body wash","target":1,"unit":"bottle","note":"","have":0,"active":true,"custom":false},{"id":"h8","category":"Household Items","name":"Lotion","target":1,"unit":"bottle","note":"","have":0,"active":true,"custom":false},{"id":"h9","category":"Household Items","name":"Toothpaste","target":1,"unit":"tube","note":"","have":0,"active":true,"custom":false}];
+const HOUSEHOLD_SEED_VERSION = 1;
+const ALL_DEFAULT_ITEMS = [...DEFAULT_ITEMS, ...HOUSEHOLD_ITEMS];
+const NOVEMBER_SEED_VERSION = 4;
+const NOVEMBER_V2_ADDITIONS = [{"id":"n64","category":"Sauces & Seasonings","name":"La Costeña Chipotle Peppers in Adobo Sauce, 7 oz","target":2,"unit":"cans","note":"Chipotle-style chicken marinade · smoky heat","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n65","category":"Vegetables","name":"Fresh Cilantro","target":4,"unit":"bunches","note":"Chipotle-style cilantro-lime rice & bowl topping · buy about 1 weekly","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n66","category":"Fruit & Fiber Foods","name":"Fresh Limes","target":8,"unit":"limes","note":"For cilantro-lime rice, chicken marinade, and bowls","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n67","category":"Other Protein Foods","name":"Friendly Farms Nonfat Plain Greek Yogurt, 32 oz","target":1,"unit":"tub","note":"Goal-friendly sour-cream substitute for Chipotle-style bowls","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n68","category":"Vegetables","name":"Romaine Hearts","target":2,"unit":"3-count packs","note":"Chipotle-style bowl topping · buy fresh as needed","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n69","category":"Sauces & Seasonings","name":"Great Value Ground Cumin","target":1,"unit":"container","note":"Restock only if low · Chipotle-style chicken seasoning","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n70","category":"Sauces & Seasonings","name":"Great Value Oregano Leaves","target":1,"unit":"container","note":"Restock only if low · Chipotle-style chicken seasoning","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false}];
+const NOVEMBER_V3_ADDITIONS = [{"id":"n71","category":"Vegetables","name":"Fresh Green Bell Peppers (Aldi Produce)","target":6,"unit":"peppers","note":"Chipotle-style fajita veggies · slice with red onion","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n72","category":"Vegetables","name":"Fresh Red Onions (Aldi Produce)","target":3,"unit":"onions","note":"Chipotle-style fajita veggies · slice with green bell pepper","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n73","category":"Sauces & Seasonings","name":"Great Value Bay Leaves","target":1,"unit":"container","note":"Restock only if low · for Chipotle-style cilantro-lime rice","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false}];
+const NOVEMBER_V4_ADDITIONS = [{"id":"n29","category":"Vegetables","name":"Fairhill Farms Pepper & Onion Medley","target":3,"unit":"bags","note":"Convenience pick for Chipotle-style fajita veggies","have":0,"active":true,"custom":false,"price":0,"store":"Save A Lot","staple":false}];
+const NOVEMBER_ITEMS = [{"id":"n0","category":"Main Meats","name":"Kirkwood Chicken Breast Family Pack","target":2,"unit":"packs","note":"~4.2 lb each \u00b7 locked October ratio","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n1","category":"Main Meats","name":"Simply Nature 93/7 Ground Beef","target":8,"unit":"1-lb packs","note":"locked October ratio","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n2","category":"Main Meats","name":"Fresh Atlantic Salmon Sides","target":2,"unit":"packs","note":"~2 lb each \u00b7 locked October ratio","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n3","category":"Main Meats","name":"USDA Choice Black Angus Top Sirloin Steak","target":2,"unit":"packs","note":"~1.4 lb each \u00b7 locked October ratio","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n4","category":"Other Protein Foods","name":"Great Value Large White Eggs, 60 Count","target":1,"unit":"60-count box","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n5","category":"Other Protein Foods","name":"Marketside Real Wood Smoked Turkey Bacon, 10 oz","target":4,"unit":"packs","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n6","category":"Other Protein Foods","name":"Great Value Chunk Light Tuna in Water, 5 oz","target":8,"unit":"cans","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n7","category":"Other Protein Foods","name":"Chobani 20G Protein Vanilla Greek Yogurt, 4-Pack","target":2,"unit":"4-packs","note":"8 cups total","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n8","category":"Other Protein Foods","name":"Great Value Reduced-Fat American Cheese Singles","target":2,"unit":"packs","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n9","category":"Other Protein Foods","name":"Happy Farms Shredded Taco Style Cheese, 12 oz","target":2,"unit":"bags","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n10","category":"Other Protein Foods","name":"Optimum Nutrition Gold Standard Whey","target":1,"unit":"tub","note":"Restock only if nearly empty","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n11","category":"Carbs & Training Fuel","name":"Earthly Grains Jasmine Rice, 5 lb","target":1,"unit":"bag","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n12","category":"Carbs & Training Fuel","name":"Barilla Protein+ Spaghetti, 14.5 oz","target":4,"unit":"boxes","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n13","category":"Carbs & Training Fuel","name":"L'oven Fresh 100% Whole Wheat Bread, 20 oz","target":2,"unit":"loaves","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n14","category":"Carbs & Training Fuel","name":"Great Value Diced Sweet Potatoes, Frozen, 10 oz","target":6,"unit":"bags","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n15","category":"Carbs & Training Fuel","name":"Quaker Instant Oatmeal Original, 12 Packets","target":2,"unit":"boxes","note":"Boxed packets for easy use","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n16","category":"Carbs & Training Fuel","name":"Mission Carb Balance Soft Taco Flour Tortillas, 8 ct","target":2,"unit":"packs","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n17","category":"Carbs & Training Fuel","name":"Premier Protein Buttermilk Pancake & Waffle Mix","target":1,"unit":"box","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n18","category":"Carbs & Training Fuel","name":"Great Value Sugar Free Pancake Syrup","target":1,"unit":"bottle","note":"Restock only if low","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n19","category":"Fruit & Fiber Foods","name":"Great Value Black Beans, 15 oz","target":6,"unit":"cans","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n20","category":"Fruit & Fiber Foods","name":"Great Value Fat Free Refried Beans, 16 oz","target":4,"unit":"cans","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n21","category":"Fruit & Fiber Foods","name":"Great Value Triple Berry Blend, Frozen, 48 oz","target":1,"unit":"bag","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n22","category":"Fruit & Fiber Foods","name":"Fresh Bananas","target":12,"unit":"bananas","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n23","category":"Fruit & Fiber Foods","name":"Fresh Gala Apples","target":8,"unit":"apples","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n24","category":"Fruit & Fiber Foods","name":"Fresh Avocados","target":4,"unit":"avocados","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n25","category":"Vegetables","name":"Great Value Broccoli Florets, Frozen, 32 oz","target":2,"unit":"bags","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n26","category":"Vegetables","name":"Fairhill Farms Brussels Sprouts, Frozen","target":4,"unit":"bags","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Save A Lot","staple":false},{"id":"n27","category":"Vegetables","name":"Fairhill Farms Chopped Spinach, Frozen","target":3,"unit":"bags","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Save A Lot","staple":false},{"id":"n28","category":"Vegetables","name":"Great Value Cut Green Beans, 14.5 oz","target":6,"unit":"cans","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n29","category":"Vegetables","name":"Fairhill Farms Pepper & Onion Medley","target":3,"unit":"bags","note":"Convenience pick for Chipotle-style fajita veggies","have":0,"active":true,"custom":false,"price":0,"store":"Save A Lot","staple":false},{"id":"n30","category":"Vegetables","name":"Fresh Asparagus","target":2,"unit":"bunches","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n31","category":"Vegetables","name":"Great Value Whole Kernel Corn, Frozen, 32 oz","target":1,"unit":"bag","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n32","category":"Fats & Extras","name":"Simply Nature Organic Unsweetened Creamy Peanut Butter, 16 oz","target":1,"unit":"jar","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n33","category":"Fats & Extras","name":"Great Value Canola Oil Cooking Spray, 8 oz","target":2,"unit":"cans","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n34","category":"Fats & Extras","name":"Stonemill Iodized Salt","target":1,"unit":"container","note":"Restock only if low","have":0,"active":false,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n35","category":"Sauces & Seasonings","name":"Simply Nature Tomato Basil Pasta Sauce","target":3,"unit":"jars","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n36","category":"Sauces & Seasonings","name":"Burman's Ketchup","target":1,"unit":"bottle","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n37","category":"Sauces & Seasonings","name":"Burman's Yellow Mustard","target":1,"unit":"bottle","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n38","category":"Sauces & Seasonings","name":"Frank's RedHot Original","target":2,"unit":"bottles","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n39","category":"Sauces & Seasonings","name":"Casa Mamita Salsa","target":1,"unit":"large jar","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n40","category":"Sauces & Seasonings","name":"Park Street Deli Pico de Gallo, 10 oz","target":2,"unit":"containers","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n41","category":"Sauces & Seasonings","name":"Great Value Pickled Jalape\u00f1o Slices","target":1,"unit":"jar","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n42","category":"Sauces & Seasonings","name":"G Hughes Zero Sugar Teriyaki Marinade, 13 oz","target":1,"unit":"bottle","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n43","category":"Sauces & Seasonings","name":"Goya Saz\u00f3n","target":1,"unit":"box","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n44","category":"Sauces & Seasonings","name":"Bragg Liquid Aminos","target":1,"unit":"bottle","note":"Restock only if low","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n45","category":"Sauces & Seasonings","name":"Great Value Garlic Powder","target":1,"unit":"container","note":"Restock only if low","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n46","category":"Sauces & Seasonings","name":"Great Value Onion Powder","target":1,"unit":"container","note":"Restock only if low","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n47","category":"Sauces & Seasonings","name":"Great Value Ground Paprika","target":1,"unit":"container","note":"Restock only if low","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n48","category":"Sauces & Seasonings","name":"Great Value Cajun Seasoning","target":1,"unit":"container","note":"Restock only if low","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n49","category":"Sauces & Seasonings","name":"Great Value Lemon & Pepper Seasoning","target":1,"unit":"container","note":"Restock only if low","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n50","category":"Sauces & Seasonings","name":"Great Value Ground Black Pepper","target":1,"unit":"container","note":"Restock only if low","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n51","category":"Snacks & Drinks","name":"Halo Top Light Ice Cream","target":2,"unit":"pints","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n52","category":"Snacks & Drinks","name":"Crystal Light Drink Mix, 10 Packets","target":2,"unit":"boxes","note":"","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n53","category":"Snacks & Drinks","name":"A&W Zero Sugar Root Beer + Sprite Zero Sugar","target":4,"unit":"12-packs total","note":"2 A&W Zero Sugar + 2 Sprite Zero Sugar","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n54","category":"Household Items","name":"Allsoft Toilet Paper","target":1,"unit":"pack","note":"Restock only if low","have":0,"active":false,"custom":false,"price":0,"store":"Save A Lot","staple":false},{"id":"n55","category":"Household Items","name":"Great Value Paper Towels","target":1,"unit":"pack","note":"Restock only if low","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n56","category":"Household Items","name":"Great Value Ultra Dish Liquid","target":1,"unit":"bottle","note":"Restock only if low","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n57","category":"Household Items","name":"Cat Litter \u2014 usual brand","target":1,"unit":"bag/box","note":"Restock only if low \u00b7 brand not specified","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n58","category":"Household Items","name":"Cat Food \u2014 usual brand","target":1,"unit":"bag/case","note":"Restock only if low \u00b7 brand not specified","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n59","category":"Household Items","name":"Shampoo \u2014 usual brand","target":1,"unit":"bottle","note":"Restock only if low \u00b7 brand not specified","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n60","category":"Household Items","name":"Conditioner \u2014 usual brand","target":1,"unit":"bottle","note":"Restock only if low \u00b7 brand not specified","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n61","category":"Household Items","name":"Native Sandalwood & Shea Butter Body Wash","target":1,"unit":"bottle","note":"Restock only if low","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n62","category":"Household Items","name":"Palmer's Cocoa Butter Formula Lotion","target":1,"unit":"bottle","note":"Restock only if low","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n63","category":"Household Items","name":"Toothpaste \u2014 usual brand","target":1,"unit":"tube","note":"Restock only if low \u00b7 brand not specified","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n64","category":"Sauces & Seasonings","name":"La Coste\u00f1a Chipotle Peppers in Adobo Sauce, 7 oz","target":2,"unit":"cans","note":"Chipotle-style chicken marinade \u00b7 smoky heat","have":0,"active":true,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n65","category":"Vegetables","name":"Fresh Cilantro","target":4,"unit":"bunches","note":"Chipotle-style cilantro-lime rice & bowl topping \u00b7 buy about 1 weekly","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n66","category":"Fruit & Fiber Foods","name":"Fresh Limes","target":8,"unit":"limes","note":"For cilantro-lime rice, chicken marinade, and bowls","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n67","category":"Other Protein Foods","name":"Friendly Farms Nonfat Plain Greek Yogurt, 32 oz","target":1,"unit":"tub","note":"Keep as a lower-calorie sour-cream substitute for Chipotle-style bowls","have":0,"active":true,"custom":false,"price":0,"store":"Aldi","staple":false},{"id":"n69","category":"Sauces & Seasonings","name":"Great Value Ground Cumin","target":1,"unit":"container","note":"Restock only if low \u00b7 Chipotle-style chicken seasoning","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n70","category":"Sauces & Seasonings","name":"Great Value Oregano Leaves","target":1,"unit":"container","note":"Restock only if low \u00b7 Chipotle-style chicken seasoning","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false},{"id":"n73","category":"Sauces & Seasonings","name":"Great Value Bay Leaves","target":1,"unit":"container","note":"Restock only if low \u00b7 for Chipotle-style cilantro-lime rice","have":0,"active":false,"custom":false,"price":0,"store":"Walmart","staple":false}];
+const STORE_V3 = "flexible-grocery-planner-v3-months";
+const STORE_V2 = "flexible-grocery-planner-v2";
+const STORE_V1 = "flexible-grocery-planner-v1";
+const SEASONED_API_URL_KEY = "seasoned-integration-api-url";
+const SEASONED_API_TOKEN_KEY = "seasoned-integration-app-token";
+const RECOVERY_KEY = "flexible-grocery-planner-v3-recovery-snapshots";
+const LAST_BACKUP_KEY = "flexible-grocery-planner-last-external-backup";
+
+const MONTHS = [
+  {id:"jan",short:"Jan",name:"January",icon:"❄️",themeName:"New Year Frost",desc:"Icy blue highlights over a deep winter-night base.",colors:{bg:"#08111E",surface:"#101A29",surface2:"#172438",surface3:"#203047",line:"#334A67",text:"#F2F8FF",muted:"#A8B8CA",accent:"#38BDF8",accent2:"#93C5FD",glow:"rgba(56,189,248,.22)"}},
+  {id:"feb",short:"Feb",name:"February",icon:"💘",themeName:"Valentine Noir",desc:"Rose, berry, and soft pink on a dark romantic base.",colors:{bg:"#170A12",surface:"#23101C",surface2:"#311628",surface3:"#402036",line:"#62324C",text:"#FFF3F7",muted:"#C5A6B2",accent:"#FB7185",accent2:"#F9A8D4",glow:"rgba(251,113,133,.22)"}},
+  {id:"mar",short:"Mar",name:"March",icon:"🍀",themeName:"Emerald Luck",desc:"St. Patrick’s emeralds and clover green in a dark spring palette.",colors:{bg:"#07150D",surface:"#0E2115",surface2:"#15301F",surface3:"#1D402A",line:"#2F5B3F",text:"#F0FFF4",muted:"#A6C5AF",accent:"#22C55E",accent2:"#86EFAC",glow:"rgba(34,197,94,.22)"}},
+  {id:"apr",short:"Apr",name:"April",icon:"🌧️",themeName:"Spring Rain",desc:"Rainy indigo, fresh sky blue, and cool spring darkness.",colors:{bg:"#0B101B",surface:"#121A29",surface2:"#1B263A",surface3:"#26334A",line:"#3C4D69",text:"#F3F6FF",muted:"#AAB4CA",accent:"#818CF8",accent2:"#7DD3FC",glow:"rgba(129,140,248,.22)"}},
+  {id:"may",short:"May",name:"May",icon:"🌷",themeName:"Garden Bloom",desc:"Spring florals with pink bloom and fresh mint accents.",colors:{bg:"#120D14",surface:"#1D151F",surface2:"#291D2B",surface3:"#36273A",line:"#523B57",text:"#FFF5FB",muted:"#C3ACBC",accent:"#F472B6",accent2:"#A7F3D0",glow:"rgba(244,114,182,.20)"}},
+  {id:"jun",short:"Jun",name:"June",icon:"☀️",themeName:"Summer Solstice",desc:"Warm sun-gold over a deep summer-evening backdrop.",colors:{bg:"#151006",surface:"#21190B",surface2:"#302411",surface3:"#3D2F18",line:"#5B4727",text:"#FFF9EB",muted:"#C9B995",accent:"#F59E0B",accent2:"#FDE68A",glow:"rgba(245,158,11,.22)"}},
+  {id:"jul",short:"Jul",name:"July",icon:"🎆",themeName:"Independence Night",desc:"Firework red and electric blue against midnight navy.",colors:{bg:"#070D1A",surface:"#0E1728",surface2:"#15223A",surface3:"#1D2D4A",line:"#334A70",text:"#F6F8FF",muted:"#AAB7CF",accent:"#EF4444",accent2:"#60A5FA",glow:"rgba(96,165,250,.20)"}},
+  {id:"aug",short:"Aug",name:"August",icon:"🌅",themeName:"Late Summer Sunset",desc:"Sunset orange and cool teal on a warm dark base.",colors:{bg:"#150C09",surface:"#211410",surface2:"#301D17",surface3:"#3D2820",line:"#5B4036",text:"#FFF7F1",muted:"#C8B0A4",accent:"#FB923C",accent2:"#2DD4BF",glow:"rgba(251,146,60,.22)"}},
+  {id:"sep",short:"Sep",name:"September",icon:"🍂",themeName:"Autumn Harvest",desc:"Burnished amber and leaf green for the start of fall.",colors:{bg:"#130F08",surface:"#20180D",surface2:"#2E2414",surface3:"#3B301B",line:"#59472B",text:"#FFF9EE",muted:"#C6B69A",accent:"#D97706",accent2:"#A3E635",glow:"rgba(217,119,6,.22)"}},
+  {id:"oct",short:"Oct",name:"October",icon:"🎃",themeName:"Halloween Night",desc:"Pumpkin orange, midnight purple, and deep black.",colors:{bg:"#100B14",surface:"#191320",surface2:"#241B2C",surface3:"#30233B",line:"#473553",text:"#F7F1FA",muted:"#B9AABD",accent:"#F97316",accent2:"#C084FC",glow:"rgba(249,115,22,.22)"}},
+  {id:"nov",short:"Nov",name:"November",icon:"🦃",themeName:"Thanksgiving Table",desc:"Cranberry, roasted amber, and dark walnut tones.",colors:{bg:"#150B08",surface:"#21130F",surface2:"#301C16",surface3:"#3D2720",line:"#5B3E33",text:"#FFF6EE",muted:"#C7AE9D",accent:"#B45309",accent2:"#F59E0B",glow:"rgba(180,83,9,.22)"}},
+  {id:"dec",short:"Dec",name:"December",icon:"🎄",themeName:"Christmas Night",desc:"Evergreen, holly red, and warm holiday lights.",colors:{bg:"#07120D",surface:"#0E1D15",surface2:"#14291D",surface3:"#1B3626",line:"#31513D",text:"#F3FFF7",muted:"#A9C2B0",accent:"#DC2626",accent2:"#22C55E",glow:"rgba(220,38,38,.19)"}}
+];
+
+let state;
+let filterMode = "all";
+const collapsed = {};
+
+const categoryIcon = {
+  "Main Meats":"🥩","Other Protein Foods":"🍳","Carbs & Training Fuel":"🍚","Vegetables":"🥦",
+  "Fruit & Fiber Foods":"🍓","Fats & Extras":"🥜","Sauces & Seasonings":"🌶️","Snacks & Drinks":"🍨","Household Items":"🏠","Other":"🧺"
+};
+
+function clone(v){ return JSON.parse(JSON.stringify(v)); }
+function monthDef(id){ return MONTHS.find(m => m.id === id) || MONTHS[9]; }
+function currentMonthId(){ return MONTHS[new Date().getMonth()]?.id || "oct"; }
+
+function freshState() {
+  const months = {};
+  MONTHS.forEach(m => { months[m.id] = {id:m.id, items:m.id === "oct" ? clone(ALL_DEFAULT_ITEMS) : (m.id === "nov" ? clone(NOVEMBER_ITEMS) : [])}; });
+  const seedLibrary = [...ALL_DEFAULT_ITEMS, ...NOVEMBER_ITEMS];
+  const seenLibrary = new Set();
+  const foodLibrary = seedLibrary.filter(i => { const k=String(i.name||"").trim().toLowerCase(); if(!k||seenLibrary.has(k)) return false; seenLibrary.add(k); return true; }).map(i => ({libraryId:"lib_"+i.id,name:i.name,category:i.category,target:i.target,unit:i.unit,note:i.note||""}));
+  return {activeMonthId: currentMonthId(), months, foodLibrary, appearanceMode:"dark", householdSeedVersion:HOUSEHOLD_SEED_VERSION, novemberSeedVersion:NOVEMBER_SEED_VERSION};
+}
+
+function migrateLegacy(oldState) {
+  const next = freshState();
+  if (oldState?.plans && Object.keys(oldState.plans).length) {
+    const all = Object.values(oldState.plans);
+    const october = all.find(p => /october/i.test(p.name || "")) || oldState.plans[oldState.activePlanId] || all[0];
+    if (october?.items) next.months.oct.items = clone(october.items);
+  }
+  next.activeMonthId = "oct";
+  return next;
+}
+
+function normalizeState(s) {
+  if (!s || !s.months) return freshState();
+  if (!["light","dark","device"].includes(s.appearanceMode)) s.appearanceMode="dark";
+  MONTHS.forEach(m => {
+    if (!s.months[m.id]) s.months[m.id] = {id:m.id,items:[]};
+    if (!Array.isArray(s.months[m.id].items)) s.months[m.id].items = [];
+  });
+  if (!s.months[s.activeMonthId]) s.activeMonthId = currentMonthId();
+  const previousNovemberSeed=Number(s.novemberSeedVersion||0);
+  if (previousNovemberSeed < 1) {
+    const novMonth=s.months.nov;
+    if (!novMonth.items.length) {
+      novMonth.items=clone(NOVEMBER_ITEMS);
+    } else {
+      const existingNovember=new Set(novMonth.items.map(i=>foodNameKey(i.name)));
+      NOVEMBER_ITEMS.forEach(i=>{ if(!existingNovember.has(foodNameKey(i.name))) novMonth.items.push(clone(i)); });
+    }
+  } else if (previousNovemberSeed < 2) {
+    const novMonth=s.months.nov;
+    const existingNovember=new Set(novMonth.items.map(i=>foodNameKey(i.name)));
+    NOVEMBER_V2_ADDITIONS.forEach(i=>{ if(!existingNovember.has(foodNameKey(i.name))) novMonth.items.push(clone(i)); });
+  }
+  if (previousNovemberSeed < 3) {
+    const novMonth=s.months.nov;
+    const removeSeeded=new Set([foodNameKey("Romaine Hearts"),foodNameKey("Fairhill Farms Pepper & Onion Medley")]);
+    novMonth.items=novMonth.items.filter(i=>!(removeSeeded.has(foodNameKey(i.name)) && !i.custom));
+    const existingNovember=new Set(novMonth.items.map(i=>foodNameKey(i.name)));
+    NOVEMBER_V3_ADDITIONS.forEach(i=>{ if(!existingNovember.has(foodNameKey(i.name))) novMonth.items.push(clone(i)); });
+  }
+  if (previousNovemberSeed < 4) {
+    const novMonth=s.months.nov;
+    const removeSeeded=new Set([foodNameKey("Fresh Green Bell Peppers (Aldi Produce)"),foodNameKey("Fresh Red Onions (Aldi Produce)")]);
+    novMonth.items=novMonth.items.filter(i=>!(removeSeeded.has(foodNameKey(i.name)) && !i.custom));
+    const existingNovember=new Set(novMonth.items.map(i=>foodNameKey(i.name)));
+    NOVEMBER_V4_ADDITIONS.forEach(i=>{ if(!existingNovember.has(foodNameKey(i.name))) novMonth.items.push(clone(i)); });
+  }
+  if (previousNovemberSeed < NOVEMBER_SEED_VERSION) s.novemberSeedVersion=NOVEMBER_SEED_VERSION;
+  if (Number(s.householdSeedVersion||0) < HOUSEHOLD_SEED_VERSION) {
+    const existingOctober = new Set((s.months.oct.items||[]).map(i=>foodNameKey(i.name)));
+    HOUSEHOLD_ITEMS.forEach(i => {
+      if(!existingOctober.has(foodNameKey(i.name))) s.months.oct.items.push(clone(i));
+    });
+    s.householdSeedVersion = HOUSEHOLD_SEED_VERSION;
+  }
+  if (!Array.isArray(s.foodLibrary)) s.foodLibrary = [];
+  const seen = new Set(s.foodLibrary.map(x=>String(x.name||"").trim().toLowerCase()).filter(Boolean));
+  MONTHS.forEach(m => (s.months[m.id].items||[]).forEach(i => {
+    const key=String(i.name||"").trim().toLowerCase();
+    if(!key || seen.has(key)) return;
+    s.foodLibrary.push({libraryId:"lib_"+uid(),name:i.name,category:i.category||"Other",target:Number(i.target||0),unit:i.unit||"units",note:i.note||""});
+    seen.add(key);
+  }));
+  return s;
+}
+
+function load() {
+  try {
+    const v3 = localStorage.getItem(STORE_V3);
+    if (v3) {
+      state = normalizeState(JSON.parse(v3));
+    } else {
+      const legacyRaw = localStorage.getItem(STORE_V2) || localStorage.getItem(STORE_V1);
+      state = legacyRaw ? migrateLegacy(JSON.parse(legacyRaw)) : freshState();
+      save();
+    }
+  } catch(e) {
+    state = freshState();
+  }
+}
+
+function writeRecoverySnapshot(){
+  try {
+    const raw=JSON.stringify(state);
+    let snaps=JSON.parse(localStorage.getItem(RECOVERY_KEY)||"[]");
+    if(!Array.isArray(snaps)) snaps=[];
+    if(snaps[0]?.raw===raw) return;
+    snaps.unshift({savedAt:new Date().toISOString(),raw});
+    localStorage.setItem(RECOVERY_KEY,JSON.stringify(snaps.slice(0,6)));
+  } catch(e) {}
+}
+function save(){
+  try {
+    localStorage.setItem(STORE_V3, JSON.stringify(state));
+  } catch(e) {
+    console.warn("Seasoned could not persist the latest state to local storage.", e);
+  }
+  writeRecoverySnapshot();
+  updateBackupStatus();
+}
+function month(){ return state.months[state.activeMonthId]; }
+function theme(){ return monthDef(state.activeMonthId); }
+function uid(){ return "x" + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function esc(v){ return String(v ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
+function fmt(n){ const v=Number(n||0); return Number.isInteger(v)?String(v):v.toFixed(1).replace(/\.0$/,""); }
+function stepFor(item){ return (item.unit||"").toLowerCase().includes("lb") ? .5 : 1; }
+function foodNameKey(name){ return String(name||"").trim().toLowerCase().replace(/\s+/g," "); }
+function upsertFoodLibrary(item){
+  if(!item?.name) return;
+  if(!Array.isArray(state.foodLibrary)) state.foodLibrary=[];
+  const key=foodNameKey(item.name);
+  let saved=state.foodLibrary.find(x=>foodNameKey(x.name)===key);
+  const data={name:item.name,category:item.category||"Other",target:Number(item.target||0),unit:item.unit||"units",note:item.note||""};
+  if(saved) Object.assign(saved,data);
+  else state.foodLibrary.push({libraryId:"lib_"+uid(),...data});
+}
+function populateSavedFoods(){
+  const select=document.getElementById("savedFoodSelect"); if(!select) return;
+  const previous=select.value;
+  const foods=[...(state.foodLibrary||[])].sort((a,b)=>a.name.localeCompare(b.name));
+  select.innerHTML=`<option value="">Choose a remembered item…</option>`+foods.map(x=>`<option value="${esc(x.libraryId)}">${esc(x.name)}</option>`).join("");
+  if(foods.some(x=>String(x.libraryId)===String(previous))) select.value=previous;
+}
+function fillAddFormFromSaved(saved){
+  if(!saved) return;
+  document.getElementById("addName").value=saved.name||"";
+  document.getElementById("addCategory").value=saved.category||"Other";
+  document.getElementById("addTarget").value=Number(saved.target||0);
+  document.getElementById("addUnit").value=saved.unit||"units";
+  document.getElementById("addNote").value=saved.note||"";
+}
+function monthHasFood(monthId,name){ return (state.months[monthId]?.items||[]).some(x=>foodNameKey(x.name)===foodNameKey(name)); }
+
+function toast(msg){
+  const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(window.__toastTimer); window.__toastTimer=setTimeout(()=>t.classList.remove("show"),1500);
+}
+
+
+function isStandalone(){
+  return window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+function formatWhen(iso){
+  if(!iso) return "Never";
+  const d=new Date(iso);
+  if(Number.isNaN(d.getTime())) return "Unknown";
+  return d.toLocaleString([], {month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"});
+}
+function updateBackupStatus(){
+  const mode=document.getElementById("appModeStatus");
+  const offline=document.getElementById("offlineStatus");
+  const last=document.getElementById("lastBackupStatus");
+  const snap=document.getElementById("snapshotStatus");
+  const help=document.getElementById("installHelp");
+  if(mode) mode.textContent=isStandalone()?"Home-screen app":"Safari / browser";
+  let snaps=[];
+  try { snaps=JSON.parse(localStorage.getItem(RECOVERY_KEY)||"[]"); } catch(e) {}
+  if(snap) snap.textContent=`${Array.isArray(snaps)?snaps.length:0} saved`;
+  if(last) last.textContent=formatWhen(localStorage.getItem(LAST_BACKUP_KEY));
+  const controlled=!!navigator.serviceWorker?.controller;
+  if(offline){
+    offline.innerHTML=`<span class="offline-dot ${controlled?"ready":""}"></span>${controlled?"Ready":"Not cached yet"}`;
+  }
+  if(help && isStandalone()) help.textContent="Installed on your Home Screen. Open once while online after each app update so the newest version is cached for offline use.";
+}
+function backupObject(){
+  return {
+    app:"Seasoned",
+    schemaVersion:6,
+    exportedAt:new Date().toISOString(),
+    state:clone(state)
+  };
+}
+async function exportBackup(){
+  const payload=JSON.stringify(backupObject(),null,2);
+  const d=new Date();
+  const date=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const filename=`seasoned-backup-${date}.json`;
+  const blob=new Blob([payload],{type:"application/json"});
+  const file=new File([blob],filename,{type:"application/json"});
+  let shared=false;
+  try {
+    if(navigator.share && navigator.canShare?.({files:[file]})){
+      await navigator.share({title:"Seasoned Backup",text:"Seasoned 12-month grocery & household planner backup",files:[file]});
+      shared=true;
+    }
+  } catch(e){
+    if(e?.name==="AbortError") return;
+  }
+  if(!shared){
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a"); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+  }
+  localStorage.setItem(LAST_BACKUP_KEY,new Date().toISOString());
+  updateBackupStatus();
+  toast("Backup created");
+}
+async function restoreBackup(file){
+  if(!file) return;
+  try {
+    const parsed=JSON.parse(await file.text());
+    const candidate=parsed?.state || parsed;
+    if(!candidate?.months || typeof candidate.months!=="object") throw new Error("Missing monthly planner data");
+    const normalized=normalizeState(clone(candidate));
+    if(!confirm("Restore this backup? Your current planner data will be replaced. A local recovery snapshot of the current data will be kept first.")) return;
+    writeRecoverySnapshot();
+    state=normalized;
+    localStorage.setItem(STORE_V3,JSON.stringify(state));
+    writeRecoverySnapshot();
+    render(); updateBackupStatus();
+    toast("Backup restored");
+  } catch(e){
+    alert("That file could not be restored. Make sure it is a Seasoned JSON backup.");
+  } finally {
+    const input=document.getElementById("restoreInput"); if(input) input.value="";
+  }
+}
+function restoreNewestSnapshot(){
+  try {
+    const snaps=JSON.parse(localStorage.getItem(RECOVERY_KEY)||"[]");
+    if(!Array.isArray(snaps)||!snaps.length){ alert("No local recovery snapshot is available yet."); return; }
+    const candidate=normalizeState(JSON.parse(snaps[0].raw));
+    if(!confirm(`Restore the newest local snapshot from ${formatWhen(snaps[0].savedAt)}?`)) return;
+    state=candidate; localStorage.setItem(STORE_V3,JSON.stringify(state)); render(); updateBackupStatus(); toast("Local snapshot restored");
+  } catch(e){ alert("The local recovery snapshot could not be restored."); }
+}
+function resetAllData(){
+  if(!confirm("Reset ALL 12 months and inventory data? This cannot be undone unless you have an external backup.")) return;
+  if(!confirm("Final confirmation: erase the planner and return to the original October preload?")) return;
+  writeRecoverySnapshot();
+  state=freshState();
+  localStorage.setItem(STORE_V3,JSON.stringify(state));
+  render(); updateBackupStatus(); toast("Planner reset");
+}
+function toggleSettings(force){
+  const panel=document.getElementById("settingsPanel");
+  const open=typeof force==="boolean"?force:!panel.classList.contains("open");
+  panel.classList.toggle("open",open);
+  updateBackupStatus();
+  updateAppearanceControls();
+  if(open) setTimeout(()=>panel.scrollIntoView({behavior:"smooth",block:"start"}),40);
+}
+async function registerServiceWorker(){
+  if(!('serviceWorker' in navigator)) { updateBackupStatus(); return; }
+  try {
+    const reg=await navigator.serviceWorker.register('./service-worker.js');
+    await navigator.serviceWorker.ready;
+    updateBackupStatus();
+    reg.addEventListener?.('updatefound',()=>updateBackupStatus());
+    navigator.serviceWorker.addEventListener('controllerchange',updateBackupStatus);
+  } catch(e){ updateBackupStatus(); }
+}
+
+const appearanceMedia=window.matchMedia("(prefers-color-scheme: dark)");
+function resolvedAppearanceMode(){
+  const pref=["light","dark","device"].includes(state?.appearanceMode)?state.appearanceMode:"dark";
+  return pref==="device"?(appearanceMedia.matches?"dark":"light"):pref;
+}
+function hexRgb(hex){
+  const h=String(hex||"").replace("#","");
+  const full=h.length===3?h.split("").map(x=>x+x).join(""):h;
+  const n=parseInt(full,16);
+  return {r:(n>>16)&255,g:(n>>8)&255,b:n&255};
+}
+function mixHex(a,b,amount){
+  const x=hexRgb(a), y=hexRgb(b), t=Math.max(0,Math.min(1,Number(amount)||0));
+  const v=k=>Math.round(x[k]+(y[k]-x[k])*t).toString(16).padStart(2,"0");
+  return `#${v("r")}${v("g")}${v("b")}`;
+}
+function hexRgba(hex,alpha){ const x=hexRgb(hex); return `rgba(${x.r},${x.g},${x.b},${alpha})`; }
+function appearancePalette(t){
+  const c=t.colors;
+  if(resolvedAppearanceMode()==="dark") return {...c,accentSoft:mixHex(c.accent,c.bg,.72),success:"#7FA36E",danger:"#E47B68",shadow:"0 16px 38px rgba(0,0,0,.34)"};
+  const accent=mixHex(c.accent,"#000000",.35);
+  const accent2=mixHex(c.accent2,"#000000",.50);
+  return {
+    bg:mixHex(c.accent,"#FFFFFF",.965),
+    surface:"#FFFFFF",
+    surface2:mixHex(c.accent,"#FFFFFF",.925),
+    surface3:mixHex(c.accent2,"#FFFFFF",.875),
+    line:mixHex(c.accent,"#FFFFFF",.72),
+    text:"#211A24",
+    muted:"#6E6572",
+    accent,accent2,
+    accentSoft:mixHex(c.accent,"#FFFFFF",.82),
+    glow:hexRgba(c.accent,.13),
+    success:"#4F7A42",
+    danger:"#B85142",
+    shadow:"0 16px 36px rgba(41,31,47,.14)"
+  };
+}
+function updateAppearanceControls(){
+  const pref=["light","dark","device"].includes(state?.appearanceMode)?state.appearanceMode:"dark";
+  document.querySelectorAll("[data-appearance-mode]").forEach(btn=>{
+    const active=btn.dataset.appearanceMode===pref;
+    btn.classList.toggle("active",active);
+    btn.setAttribute("aria-pressed",active?"true":"false");
+  });
+  const effective=resolvedAppearanceMode();
+  const label=pref==="device"?`Following device · ${effective}`:`${effective[0].toUpperCase()+effective.slice(1)} mode`;
+  const status=document.getElementById("appearanceResolved"); if(status) status.textContent=label;
+}
+function setAppearanceMode(mode){
+  if(!["light","dark","device"].includes(mode)) return;
+  state.appearanceMode=mode;
+  save(); applyTheme(); updateAppearanceControls();
+  toast(mode==="device"?`Appearance follows device (${resolvedAppearanceMode()})`:`${mode[0].toUpperCase()+mode.slice(1)} mode enabled`);
+}
+function applyTheme(){
+  const t=theme(), c=appearancePalette(t), root=document.documentElement;
+  Object.entries(c).forEach(([k,v])=>root.style.setProperty(`--${k}`,v));
+  const effective=resolvedAppearanceMode();
+  root.style.colorScheme=effective;
+  root.dataset.appearance=effective;
+  document.getElementById("themeColor").setAttribute("content",c.bg);
+  const iosStatus=document.getElementById("appleStatusBarStyle"); if(iosStatus) iosStatus.setAttribute("content",effective==="dark"?"black-translucent":"default");
+  document.getElementById("themeEmoji").textContent=t.icon;
+  document.getElementById("themeMonth").textContent=t.name;
+  document.getElementById("themeName").textContent=t.themeName;
+  document.getElementById("themeDesc").textContent=t.desc;
+  document.getElementById("brandLogo").textContent=t.icon;
+  document.getElementById("addMonthHint").textContent=`Adding to ${t.name}`;
+  document.title=`Seasoned · ${t.name}`;
+  updateAppearanceControls();
+}
+
+function renderMonthTabs(){
+  const wrap=document.getElementById("monthTabs");
+  wrap.innerHTML=MONTHS.map(m=>`<button type="button" class="monthtab ${m.id===state.activeMonthId?"active":""}" data-month="${m.id}" aria-label="${m.name}" aria-current="${m.id===state.activeMonthId?"true":"false"}"><span class="micon">${m.icon}</span><span class="mname">${m.short}</span></button>`).join("");
+  requestAnimationFrame(()=>wrap.querySelector(".monthtab.active")?.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"}));
+}
+
+function switchMonth(id){
+  if (!state.months[id] || id===state.activeMonthId) return;
+  document.body.classList.add("month-transitioning");
+  state.activeMonthId=id;
+  document.getElementById("search").value="";
+  filterMode="all";
+  document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("active",c.dataset.filter==="all"));
+  // Render first so month navigation never appears frozen if device storage is full/unavailable.
+  render();
+  save();
+  clearTimeout(window.__seasonedMonthMotion);
+  window.__seasonedMonthMotion=setTimeout(()=>document.body.classList.remove("month-transitioning"),340);
+}
+
+function stats(){
+  const active=month().items.filter(i=>i.active);
+  const complete=active.filter(i=>Number(i.have||0)>=Number(i.target||0)).length;
+  const needed=active.length-complete;
+  const unused=month().items.filter(i=>!i.active).length;
+  const pct=active.length?Math.round(complete/active.length*100):0;
+  document.getElementById("completeN").textContent=complete;
+  document.getElementById("neededN").textContent=needed;
+  document.getElementById("unusedN").textContent=unused;
+  document.getElementById("ringPct").textContent=pct+"%";
+  document.getElementById("ring").style.background=`conic-gradient(var(--accent) ${pct}%, var(--surface3) ${pct}%)`;
+}
+
+function group(items){
+  const order=["Main Meats","Other Protein Foods","Carbs & Training Fuel","Vegetables","Fruit & Fiber Foods","Fats & Extras","Sauces & Seasonings","Snacks & Drinks","Household Items","Other"];
+  const map={};
+  items.forEach(i=>{ if(!map[i.category]) map[i.category]=[]; map[i.category].push(i); });
+  return order.filter(k=>map[k]?.length).map(k=>[k,map[k]]);
+}
+
+function filteredItems(){
+  const q=document.getElementById("search").value.trim().toLowerCase();
+  return month().items.filter(i=>{
+    const need=Math.max(0,Number(i.target||0)-Number(i.have||0));
+    if(q && !(`${i.name} ${i.category} ${i.note||""}`.toLowerCase().includes(q))) return false;
+    if(filterMode==="needed" && (!i.active || need<=0)) return false;
+    if(filterMode==="complete" && (!i.active || need>0)) return false;
+    if(filterMode==="unused" && i.active) return false;
+    return true;
+  });
+}
+
+function itemHTML(i){
+  const target=Number(i.target||0), have=Number(i.have||0), need=Math.max(0,target-have);
+  const complete=i.active && need<=0;
+  const status=!i.active?"Not this month":complete?"Complete":`Need ${fmt(need)}`;
+  const note=i.note?` · ${esc(i.note)}`:"";
+  return `<div class="item ${complete?"complete":""} ${!i.active?"off":""}" data-id="${i.id}">
+    <div class="item-main"><div><div class="item-name">${esc(i.name)}</div><div class="item-meta">Target ${fmt(target)} ${esc(i.unit)}${note}</div></div><div class="item-head-actions"><div class="badge">${status}</div><button class="removequick" title="Remove item" aria-label="Remove ${esc(i.name)} from ${theme().name}">🗑️</button></div></div>
+    <div class="quickrow">
+      <div class="havebox"><div><small>You have</small><b>${fmt(have)} ${esc(i.unit)}</b></div></div>
+      <button class="stepbtn minus" aria-label="Decrease">−</button><button class="stepbtn plus" aria-label="Increase">＋</button><button class="donebtn">Have all</button>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:7px"><button class="morebtn" title="More options">•••</button></div>
+    <div class="details"><div class="details-grid">
+      <div class="field"><label>Target amount</label><input class="targetInput" type="number" min="0" step="${stepFor(i)}" value="${target}"></div>
+      <div class="field"><label>Have amount</label><input class="haveInput" type="number" min="0" step="${stepFor(i)}" value="${have}"></div>
+    </div><div class="detail-actions">
+      <button class="btn small toggleUse">${i.active?"Not this month":"Use this month"}</button>
+      <button class="btn small copyItem">Copy to months</button>
+      <button class="btn small smartSwap">Find smart swap</button>
+      <button class="btn small editItem">Edit name/details</button><button class="btn small danger deleteItem">Remove from month</button>
+    </div></div>
+  </div>`;
+}
+
+function render(){
+  ensureSmartState(); applyTheme(); renderMonthTabs(); stats(); populateSavedFoods(); renderSmartSummary();
+  const groups=group(filteredItems()), list=document.getElementById("list");
+  if(!month().items.length){
+    const t=theme();
+    list.innerHTML=`<div class="empty"><span class="emptyicon">${t.icon}</span><b>${t.name} is ready.</b>No items are preloaded for this month yet.<br><button class="btn primary" id="emptyAdd">Add first item</button></div>`;
+    document.getElementById("emptyAdd")?.addEventListener("click",()=>toggleAddPanel(true));
+    return;
+  }
+  if(!groups.length){ list.innerHTML=`<div class="empty"><span class="emptyicon">🔎</span><b>Nothing matches this view.</b>Try another search or filter.</div>`; return; }
+  list.innerHTML=groups.map(([cat,arr])=>{
+    const activeCount=arr.filter(i=>i.active).length;
+    const completeCount=arr.filter(i=>i.active && Number(i.have||0)>=Number(i.target||0)).length;
+    const key=`${state.activeMonthId}:${cat}`;
+    return `<section class="category ${collapsed[key]?"collapsed":""}" data-cat="${esc(cat)}">
+      <button class="category-head"><span class="cat-left"><span class="cat-icon">${categoryIcon[cat]||"🧺"}</span><span><div class="cat-title">${esc(cat)}</div><div class="cat-sub">${completeCount} of ${activeCount} active items complete</div></span></span><span class="chev">⌄</span></button>
+      <div class="items">${arr.map(itemHTML).join("")}</div></section>`;
+  }).join("");
+  wire();
+}
+
+function findItem(id){ return month().items.find(i=>String(i.id)===String(id)); }
+let pendingRemoveId=null;
+function requestRemove(item){
+  if(!item) return;
+  pendingRemoveId=String(item.id);
+  const overlay=document.getElementById("removeConfirmOverlay");
+  document.getElementById("removeConfirmText").textContent=`Remove “${item.name}” from ${theme().name}? This cannot be undone.`;
+  overlay.hidden=false;
+  document.body.classList.add("modal-open");
+  requestAnimationFrame(()=>document.getElementById("confirmRemoveBtn")?.focus());
+}
+function closeRemoveConfirm(){
+  pendingRemoveId=null;
+  document.getElementById("removeConfirmOverlay").hidden=true;
+  document.body.classList.remove("modal-open");
+}
+function commitRemove(){
+  if(pendingRemoveId===null) return;
+  const id=pendingRemoveId;
+  const item=findItem(id);
+  if(!item){ closeRemoveConfirm(); return; }
+  month().items=month().items.filter(x=>String(x.id)!==id);
+  closeRemoveConfirm();
+  save(); render(); toast("Food removed");
+}
+let pendingCopyId=null;
+function requestCopy(item){
+  if(!item) return;
+  pendingCopyId=String(item.id);
+  const current=state.activeMonthId;
+  document.getElementById("copyFoodText").textContent=`Copy “${item.name}” from ${theme().name}. Copied months start with 0 on hand.`;
+  const box=document.getElementById("copyMonthChoices");
+  box.innerHTML=MONTHS.filter(m=>m.id!==current).map(m=>{
+    const exists=monthHasFood(m.id,item.name);
+    return `<label class="copy-month-option ${exists?"disabled":""}"><input type="checkbox" value="${m.id}" ${exists?"disabled":""}><span><span class="copy-month-name">${m.icon} ${m.name}</span><span class="copy-month-status">${exists?"Already in this month":"Available"}</span></span></label>`;
+  }).join("");
+  document.getElementById("copyFoodOverlay").hidden=false;
+  document.body.classList.add("modal-open");
+}
+function closeCopyFood(){
+  pendingCopyId=null;
+  document.getElementById("copyFoodOverlay").hidden=true;
+  document.body.classList.remove("modal-open");
+}
+function selectAllCopyMonths(){
+  document.querySelectorAll('#copyMonthChoices input[type="checkbox"]:not(:disabled)').forEach(x=>x.checked=true);
+}
+function commitCopyFood(){
+  if(pendingCopyId===null) return;
+  const item=findItem(pendingCopyId);
+  if(!item){ closeCopyFood(); return; }
+  const ids=[...document.querySelectorAll('#copyMonthChoices input[type="checkbox"]:checked')].map(x=>x.value);
+  if(!ids.length){ toast("Choose at least one month"); return; }
+  let copied=0;
+  ids.forEach(monthId=>{
+    if(monthHasFood(monthId,item.name)) return;
+    state.months[monthId].items.push({id:uid(),category:item.category,name:item.name,target:Number(item.target||0),unit:item.unit,note:item.note||"",have:0,active:true,custom:true});
+    copied++;
+  });
+  upsertFoodLibrary(item);
+  closeCopyFood(); save(); render(); toast(copied===1?"Copied to 1 month":`Copied to ${copied} months`);
+}
+
+function wire(){
+  document.querySelectorAll(".category").forEach(sec=>sec.querySelector(".category-head").addEventListener("click",()=>{
+    const key=`${state.activeMonthId}:${sec.dataset.cat}`; collapsed[key]=!collapsed[key]; sec.classList.toggle("collapsed");
+  }));
+  document.querySelectorAll(".item").forEach(el=>{
+    const item=findItem(el.dataset.id); if(!item) return; const step=stepFor(item);
+    el.querySelector(".minus").addEventListener("click",()=>{ item.have=Math.max(0,Number(item.have||0)-step); save(); render(); });
+    el.querySelector(".plus").addEventListener("click",()=>{ item.have=Number(item.have||0)+step; save(); render(); });
+    el.querySelector(".donebtn").addEventListener("click",()=>{ item.have=Number(item.target||0); save(); render(); toast("Marked complete"); });
+    el.querySelector(".morebtn").addEventListener("click",()=>el.querySelector(".details").classList.toggle("open"));
+    el.querySelector(".removequick").addEventListener("click",e=>{ e.preventDefault(); e.stopPropagation(); requestRemove(item); });
+    el.querySelector(".targetInput").addEventListener("change",e=>{ item.target=Math.max(0,Number(e.target.value)||0); save(); render(); });
+    el.querySelector(".haveInput").addEventListener("change",e=>{ item.have=Math.max(0,Number(e.target.value)||0); save(); render(); });
+    el.querySelector(".toggleUse").addEventListener("click",()=>{ item.active=!item.active; save(); render(); toast(item.active?"Added to this month":"Marked not this month"); });
+    el.querySelector(".copyItem").addEventListener("click",()=>requestCopy(item));
+    el.querySelector(".smartSwap")?.addEventListener("click",()=>{ openAiPanel(); askSeasonedAI("question",`Suggest the best substitutes for ${item.name}. Compare nutrition fit, grocery practicality, and budget. Prioritize items I already have or commonly buy.`); });
+    el.querySelector(".editItem").addEventListener("click",()=>{
+      const name=prompt("Food name:",item.name); if(name===null)return;
+      const unit=prompt("Unit (boxes, bags, lb, etc.):",item.unit); if(unit===null)return;
+      const note=prompt("Optional note:",item.note||""); if(note===null)return;
+      item.name=name.trim()||item.name; item.unit=unit.trim()||item.unit; item.note=note.trim(); upsertFoodLibrary(item); save(); render();
+    });
+    el.querySelector(".deleteItem").addEventListener("click",e=>{ e.preventDefault(); e.stopPropagation(); requestRemove(item); });
+  });
+}
+
+
+function getIntegrationConfig(){
+  return {
+    apiUrl:(localStorage.getItem(SEASONED_API_URL_KEY)||"").replace(/\/$/,""),
+    appToken:localStorage.getItem(SEASONED_API_TOKEN_KEY)||""
+  };
+}
+function normalizeApiUrl(value){
+  const v=String(value||"").trim().replace(/\/$/,"");
+  if(!v) return "";
+  try {
+    const u=new URL(v);
+    const local=["localhost","127.0.0.1"].includes(u.hostname);
+    if(u.protocol!=="https:" && !(local && u.protocol==="http:")) throw new Error();
+    return u.toString().replace(/\/$/,"");
+  } catch(e){ throw new Error("Enter a valid HTTPS backend URL."); }
+}
+function fillIntegrationConfig(){
+  const cfg=getIntegrationConfig();
+  const url=document.getElementById("integrationApiUrl");
+  const token=document.getElementById("integrationAppToken");
+  if(url && !url.value) url.value=cfg.apiUrl;
+  if(token && !token.value) token.value=cfg.appToken;
+}
+async function apiRequest(path,options={}){
+  const cfg=getIntegrationConfig();
+  if(!cfg.apiUrl || !cfg.appToken) throw new Error("Set the backend URL and personal app token in Settings first.");
+  const headers={...(options.headers||{}),Authorization:`Bearer ${cfg.appToken}`};
+  if(options.body && !headers["Content-Type"]) headers["Content-Type"]="application/json";
+  const res=await fetch(cfg.apiUrl+path,{...options,headers});
+  const text=await res.text();
+  let data={};
+  try { data=text?JSON.parse(text):{}; } catch(e) { data={error:text||`HTTP ${res.status}`}; }
+  if(!res.ok) throw new Error(data.error||data.message||`Request failed (${res.status})`);
+  return data;
+}
+function setIntegrationState(id,text,kind=""){
+  const el=document.getElementById(id); if(!el) return;
+  el.textContent=text; el.classList.remove("ok","bad"); if(kind) el.classList.add(kind);
+}
+async function updateIntegrationStatus(){
+  fillIntegrationConfig();
+  const cfg=getIntegrationConfig();
+  if(!cfg.apiUrl || !cfg.appToken){
+    setIntegrationState("openaiStatus","Needs setup","bad");
+    setIntegrationState("fatsecretStatus","Needs setup","bad");
+    return;
+  }
+  setIntegrationState("openaiStatus","Checking…");
+  setIntegrationState("fatsecretStatus","Checking…");
+  try {
+    const data=await apiRequest("/api/status");
+    setIntegrationState("openaiStatus",data.openaiConfigured?"Ready":"Server key missing",data.openaiConfigured?"ok":"bad");
+    setIntegrationState("fatsecretStatus",data.fatsecretConnected?"Connected":(data.fatsecretConfigured?"Ready to connect":"Server key missing"),data.fatsecretConnected?"ok":(data.fatsecretConfigured?"":"bad"));
+    const connect=document.getElementById("connectFatSecretBtn");
+    const disconnect=document.getElementById("disconnectFatSecretBtn");
+    if(connect) connect.disabled=!data.fatsecretConfigured || data.fatsecretConnected;
+    if(disconnect) disconnect.disabled=!data.fatsecretConnected;
+  } catch(e){
+    setIntegrationState("openaiStatus","Connection failed","bad");
+    setIntegrationState("fatsecretStatus","Connection failed","bad");
+  }
+}
+function localDateInt(d=new Date()){
+  return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/86400000);
+}
+function setNutritionDisplay(totals){
+  const f=(id,value,suffix="")=>{ const el=document.getElementById(id); if(el) el.textContent=value==null?"—":`${Math.round(Number(value)*10)/10}${suffix}`; };
+  f("aiCalories",totals?.calories);
+  f("aiProtein",totals?.protein,"g");
+  f("aiCarbs",totals?.carbohydrate,"g");
+  f("aiFat",totals?.fat,"g");
+  f("aiFiber",totals?.fiber,"g");
+}
+async function loadTodayNutrition(showMessage=true){
+  try {
+    const data=await apiRequest(`/api/fatsecret/today?date=${localDateInt()}`);
+    setNutritionDisplay(data.totals||{});
+    ensureSmartState(); state.smart.nutritionSnapshot={date:new Date().toISOString(),totals:data.totals||{}}; save(); renderSmartSummary();
+    if(showMessage){
+      const a=document.getElementById("aiAnswer");
+      a.classList.remove("muted");
+      a.textContent=data.entries?.length?`FatSecret synced ${data.entries.length} food entr${data.entries.length===1?"y":"ies"} for today.`:"FatSecret is connected. No food entries are logged for today yet.";
+    }
+    return data;
+  } catch(e){
+    setNutritionDisplay(null);
+    if(showMessage){ const a=document.getElementById("aiAnswer"); a.classList.add("muted"); a.textContent=e.message; }
+    return null;
+  }
+}
+function plannerAiContext(){
+  const items=(month()?.items||[]).map(i=>({
+    name:i.name,category:i.category,target:Number(i.target||0),have:Number(i.have||0),unit:i.unit,note:i.note||"",active:!!i.active
+  }));
+  return {
+    activeMonth:theme().name,
+    nutritionGoals:activeGoalContext(),
+    smartContext:smartAiContext(),
+    plannerItems:items
+  };
+}
+function openAiPanel(){
+  document.getElementById("aiOverlay").hidden=false;
+  document.body.classList.add("modal-open");
+  loadTodayNutrition(false);
+  requestAnimationFrame(()=>document.getElementById("aiQuestion")?.focus());
+}
+function closeAiPanel(){
+  document.getElementById("aiOverlay").hidden=true;
+  document.body.classList.remove("modal-open");
+}
+async function askSeasonedAI(mode="question",question=""){
+  const answer=document.getElementById("aiAnswer");
+  answer.classList.remove("muted");
+  answer.textContent="Seasoned AI is thinking…";
+  try {
+    const data=await apiRequest("/api/ai",{
+      method:"POST",
+      body:JSON.stringify({mode,question,planner:plannerAiContext(),date:localDateInt()})
+    });
+    answer.textContent=data.answer||"No response returned.";
+    if(data.nutrition?.totals) setNutritionDisplay(data.nutrition.totals);
+  } catch(e){
+    answer.classList.add("muted"); answer.textContent=e.message;
+  }
+}
+async function connectFatSecret(){
+  try {
+    const data=await apiRequest("/api/fatsecret/connect-url",{method:"POST",body:JSON.stringify({})});
+    if(!data.url) throw new Error("The backend did not return a FatSecret authorization URL.");
+    window.location.href=data.url;
+  } catch(e){ alert(e.message); }
+}
+async function disconnectFatSecret(){
+  if(!confirm("Disconnect FatSecret from Seasoned? Your FatSecret data will not be deleted.")) return;
+  try { await apiRequest("/api/fatsecret/disconnect",{method:"POST",body:JSON.stringify({})}); toast("FatSecret disconnected"); updateIntegrationStatus(); setNutritionDisplay(null); }
+  catch(e){ alert(e.message); }
+}
+function handleIntegrationReturn(){
+  const u=new URL(location.href);
+  const result=u.searchParams.get("seasonedIntegration");
+  if(!result) return;
+  if(result==="fatsecret-connected") toast("FatSecret connected");
+  else if(result==="fatsecret-error") toast("FatSecret connection failed");
+  u.searchParams.delete("seasonedIntegration");
+  history.replaceState({},"",u.pathname+u.search+u.hash);
+}
+
+
+function smartDefaults(){
+  const budgets={}; MONTHS.forEach(m=>budgets[m.id]=200);
+  return {
+    pantry:[], recipes:[], purchaseHistory:[], priceHistory:[], wasteLog:[], leftovers:[],
+    monthlyBudgets:budgets, goalProfile:"cut",
+    goals:{
+      cut:{label:"Cut",calories:1900,protein:175,fat:50,fiber:32},
+      maintenance:{label:"Maintenance",calories:2200,protein:175,fat:60,fiber:32},
+      leanbulk:{label:"Lean bulk",calories:2400,protein:175,fat:65,fiber:32}
+    },
+    weekPlan:{days:{}}, nutritionSnapshot:null, activeSmartTab:"overview"
+  };
+}
+function ensureSmartState(){
+  if(!state) return;
+  if(!state.smart || typeof state.smart!=="object") state.smart=smartDefaults();
+  const d=smartDefaults();
+  for(const [k,v] of Object.entries(d)) if(state.smart[k]===undefined) state.smart[k]=clone(v);
+  if(!state.smart.monthlyBudgets) state.smart.monthlyBudgets=clone(d.monthlyBudgets);
+  MONTHS.forEach(m=>{ if(state.smart.monthlyBudgets[m.id]==null) state.smart.monthlyBudgets[m.id]=200; });
+  if(!state.smart.goals) state.smart.goals=clone(d.goals);
+  if(!state.smart.weekPlan?.days) state.smart.weekPlan={days:{}};
+  for(const m of MONTHS) for(const i of (state.months[m.id]?.items||[])){
+    if(i.price==null) i.price=0; if(i.store==null) i.store=""; if(i.staple==null) i.staple=false;
+  }
+}
+function activeGoal(){ ensureSmartState(); return state.smart.goals[state.smart.goalProfile]||state.smart.goals.cut; }
+function activeGoalContext(){ const g=activeGoal(); return {profile:g.label,calories:`${g.calories} kcal/day`,protein:`${g.protein} g/day`,fat:`at least ${g.fat} g/day`,fiber:`${g.fiber} g/day`}; }
+function smartAiContext(){
+  ensureSmartState();
+  return {
+    pantry:state.smart.pantry.map(x=>({name:x.name,qty:x.qty,unit:x.unit,location:x.location,expires:x.expires,staple:x.staple,lowAt:x.lowAt})),
+    leftovers:state.smart.leftovers,
+    favoriteMeals:state.smart.recipes.filter(r=>r.favorite).map(r=>({name:r.name,ingredients:r.ingredients,trainingDay:r.trainingDay})),
+    weeklyPlan:state.smart.weekPlan.days,
+    monthlyBudget:state.smart.monthlyBudgets[state.activeMonthId],
+    purchaseHistory:state.smart.purchaseHistory.slice(-25),
+    wasteLog:state.smart.wasteLog.slice(-15)
+  };
+}
+function money(n){ return `$${(Number(n)||0).toFixed(2)}`; }
+function addToPantryQuantity(name,qty,unit,store="",cost=0){
+  ensureSmartState(); const key=foodNameKey(name); let p=state.smart.pantry.find(x=>foodNameKey(x.name)===key);
+  if(!p){ p={id:uid(),name,qty:0,unit:unit||"units",location:"Pantry",lowAt:0,expires:"",store:store||"",cost:Number(cost||0),staple:false}; state.smart.pantry.push(p); }
+  p.qty=Number(p.qty||0)+Number(qty||0); if(unit)p.unit=unit; if(store)p.store=store; if(cost)p.cost=Number(cost); return p;
+}
+function isoToday(){ return new Date().toISOString().slice(0,10); }
+function daysUntil(date){ if(!date) return null; const d=new Date(date+"T12:00:00"); return Math.ceil((d-new Date())/86400000); }
+function plannedSpend(){ return month().items.filter(i=>i.active).reduce((s,i)=>s+(Number(i.target||0)*Number(i.price||0)),0); }
+function recordYear(x){ return Number(x?.year)||Number(String(x?.date||"").slice(0,4))||new Date().getFullYear(); }
+function actualSpendMonth(){
+  const id=state.activeMonthId,year=new Date().getFullYear(); return state.smart.purchaseHistory.filter(x=>x.monthId===id&&recordYear(x)===year).reduce((s,x)=>s+Number(x.total||0),0);
+}
+function smartScore(){
+  ensureSmartState(); const parts=[];
+  const active=month().items.filter(i=>i.active); if(active.length) parts.push({w:30,v:active.filter(i=>Number(i.have||0)>=Number(i.target||0)).length/active.length});
+  const budget=Number(state.smart.monthlyBudgets[state.activeMonthId]||0); if(budget>0) parts.push({w:20,v:Math.max(0,Math.min(1,1-Math.max(0,plannedSpend()-budget)/budget))});
+  const n=state.smart.nutritionSnapshot?.totals, g=activeGoal();
+  if(n){ parts.push({w:20,v:Math.min(1,Number(n.protein||0)/g.protein)}); parts.push({w:15,v:Math.min(1,Number(n.fiber||0)/g.fiber)}); }
+  const waste=state.smart.wasteLog.filter(x=>x.monthId===state.activeMonthId).length; parts.push({w:15,v:Math.max(0,1-Math.min(1,waste/6))});
+  const w=parts.reduce((a,p)=>a+p.w,0)||1; return Math.round(parts.reduce((a,p)=>a+p.w*p.v,0)/w*100);
+}
+function pantryAlerts(){
+  ensureSmartState(); let low=0,exp=0;
+  for(const x of state.smart.pantry){ if(Number(x.qty||0)<=Number(x.lowAt||0)) low++; const d=daysUntil(x.expires); if(d!=null&&d<=5) exp++; }
+  return {low,exp,total:low+exp};
+}
+function renderSmartSummary(){
+  if(!state?.smart) return; const n=state.smart.nutritionSnapshot?.totals||{}, a=pantryAlerts(), score=smartScore(), budget=state.smart.monthlyBudgets[state.activeMonthId]||200;
+  const q=id=>document.getElementById(id); if(q("summaryNutritionValue")) q("summaryNutritionValue").textContent=n.calories?`${Math.round(n.calories)} / ${activeGoal().calories}`:"Sync FatSecret";
+  if(q("summaryPantryValue")) q("summaryPantryValue").textContent=`${a.low} low · ${a.exp} exp`;
+  if(q("summaryBudgetValue")) q("summaryBudgetValue").textContent=`${money(plannedSpend())} / ${money(budget)}`;
+  if(q("summaryScoreValue")) q("summaryScoreValue").textContent=`${score}/100`;
+}
+let smartTab="overview";
+function openSmartHub(tab){ ensureSmartState(); smartTab=tab||state.smart.activeSmartTab||"overview"; document.getElementById("smartHubOverlay").hidden=false; document.body.classList.add("modal-open"); renderSmartHub(); }
+function closeSmartHub(){ document.getElementById("smartHubOverlay").hidden=true; document.body.classList.remove("modal-open"); }
+function switchSmartTab(tab){ smartTab=tab; state.smart.activeSmartTab=tab; save(); renderSmartHub(); }
+function smartButton(label,attrs=""){ return `<button class="btn small" ${attrs}>${label}</button>`; }
+function renderSmartHub(){
+  ensureSmartState(); document.querySelectorAll(".smart-tab").forEach(b=>b.classList.toggle("active",b.dataset.smartTab===smartTab));
+  const el=document.getElementById("smartHubContent"); if(!el) return;
+  ({overview:renderOverviewTab,pantry:renderPantryTab,meals:renderMealsTab,plan:renderPlanTab,budget:renderBudgetTab,insights:renderInsightsTab,capture:renderCaptureTab}[smartTab]||renderOverviewTab)(el);
+}
+function renderOverviewTab(el){
+  const n=state.smart.nutritionSnapshot?.totals||{},g=activeGoal(),a=pantryAlerts(),score=smartScore(),budget=state.smart.monthlyBudgets[state.activeMonthId]||200;
+  const expiring=state.smart.pantry.filter(x=>{const d=daysUntil(x.expires);return d!=null&&d<=5;}).sort((a,b)=>(a.expires||"").localeCompare(b.expires||"")).slice(0,5);
+  el.innerHTML=`
+  <section class="smart-section"><h3>${theme().icon} ${theme().name} command center</h3><p>Your grocery plan, nutrition, pantry, and spending in one place. Your original monthly grocery list stays on the main screen.</p>
+    <div class="integration-actions" style="margin-bottom:10px"><button class="btn small primary" type="button" onclick="closeSmartHub()">← Back to monthly grocery list</button></div>
+    <div class="smart-metrics"><div class="smart-metric"><b>${n.calories?Math.round(n.calories):"—"}</b><span>of ${g.calories} kcal</span></div><div class="smart-metric"><b>${n.protein?Math.round(n.protein)+"g":"—"}</b><span>of ${g.protein}g protein</span></div><div class="smart-metric"><b>${a.total}</b><span>pantry alerts</span></div><div class="smart-metric"><b>${score}/100</b><span>Seasoned score</span></div></div>
+    <div class="smart-grid" style="margin-top:10px"><button class="btn primary" id="useWhatIHaveBtn">🍳 Use what I have</button><button class="btn" id="nextMonthBtn">➡️ Prepare next month</button></div>
+  </section>
+  <section class="smart-section"><h3>🎯 Goal profile</h3><p>Switch the targets Seasoned uses for AI and progress. You can edit every target.</p>${goalProfileEditor()}</section>
+  <section class="smart-section"><h3>💳 Budget snapshot</h3><div class="smart-metrics"><div class="smart-metric"><b>${money(plannedSpend())}</b><span>planned</span></div><div class="smart-metric"><b>${money(actualSpendMonth())}</b><span>recorded spent</span></div><div class="smart-metric"><b>${money(budget)}</b><span>budget</span></div><div class="smart-metric"><b>${money(Math.max(0,budget-plannedSpend()))}</b><span>planned remaining</span></div></div></section>
+  <section class="smart-section"><h3>⏰ Expiration watch</h3>${expiring.length?`<div class="smart-list">${expiring.map(x=>`<div class="smart-row"><div class="smart-row-main"><b>${esc(x.name)}</b><small>${esc(x.location||"Pantry")} · ${esc(x.expires||"")}</small></div><span class="smart-pill ${daysUntil(x.expires)<0?"bad":"warn"}">${daysUntil(x.expires)<0?"Expired":daysUntil(x.expires)+" days"}</span></div>`).join("")}</div>`:`<div class="smart-empty">No items expiring in the next 5 days.</div>`}</section>`;
+  wireGoalEditor();
+  document.getElementById("useWhatIHaveBtn").onclick=()=>{closeSmartHub();openAiPanel();askSeasonedAI("question","Using my pantry, leftovers, current month groceries, and today's nutrition, give me the best meal I can make right now. Use expiring food first and give gram amounts where practical.");};
+  document.getElementById("nextMonthBtn").onclick=()=>prepareNextMonth(false);
+}
+function goalProfileEditor(){ const g=activeGoal(); return `<div class="smart-form"><select id="goalProfileSelect"><option value="cut" ${state.smart.goalProfile==="cut"?"selected":""}>Cut</option><option value="maintenance" ${state.smart.goalProfile==="maintenance"?"selected":""}>Maintenance</option><option value="leanbulk" ${state.smart.goalProfile==="leanbulk"?"selected":""}>Lean bulk</option></select><input id="goalCalories" type="number" value="${g.calories}" placeholder="Calories"><input id="goalProtein" type="number" value="${g.protein}" placeholder="Protein g"><input id="goalFat" type="number" value="${g.fat}" placeholder="Fat g"><input id="goalFiber" type="number" value="${g.fiber}" placeholder="Fiber g"><button class="btn primary wide" id="saveGoalsBtn">Save goal targets</button></div>`; }
+function wireGoalEditor(){
+  document.getElementById("goalProfileSelect")?.addEventListener("change",e=>{state.smart.goalProfile=e.target.value;save();renderSmartHub();});
+  document.getElementById("saveGoalsBtn")?.addEventListener("click",()=>{const g=activeGoal();g.calories=Number(document.getElementById("goalCalories").value)||g.calories;g.protein=Number(document.getElementById("goalProtein").value)||g.protein;g.fat=Number(document.getElementById("goalFat").value)||g.fat;g.fiber=Number(document.getElementById("goalFiber").value)||g.fiber;save();renderSmartHub();toast("Goal profile saved");});
+}
+function renderPantryTab(el){
+  const rows=[...state.smart.pantry].sort((a,b)=>(a.location||"").localeCompare(b.location||"")||a.name.localeCompare(b.name));
+  el.innerHTML=`<section class="smart-section"><h3>🥫 Pantry & freezer inventory</h3><p>Track what you actually own, where it is, low-stock thresholds, staples, and expiration dates.</p>
+  <div class="smart-form"><input id="pantryName" placeholder="Item name"><input id="pantryQty" type="number" step=".1" value="1" placeholder="Quantity"><input id="pantryUnit" placeholder="Unit (bags, lb, cans…)"><select id="pantryLocation"><option>Pantry</option><option>Fridge</option><option>Freezer</option></select><input id="pantryLowAt" type="number" step=".1" value="0" placeholder="Low-stock at"><input id="pantryExpires" type="date"><input id="pantryStore" placeholder="Usual store"><input id="pantryCost" type="number" step=".01" placeholder="Unit cost"><label class="smart-note"><input id="pantryStaple" type="checkbox"> Always keep / staple</label><button class="btn primary wide" id="addPantryBtn">Add to inventory</button></div></section>
+  <section class="smart-section"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><div><h3>Inventory</h3><p>${rows.length} tracked item${rows.length===1?"":"s"}</p></div><button class="btn small" id="addLowStockBtn">Add low stock to ${theme().name}</button></div>
+  ${rows.length?`<div class="smart-list">${rows.map(pantryRow).join("")}</div>`:`<div class="smart-empty">Nothing in pantry inventory yet.</div>`}</section>`;
+  document.getElementById("addPantryBtn").onclick=addPantryFromForm; document.getElementById("addLowStockBtn").onclick=addLowStockToMonth;
+  el.querySelectorAll("[data-pantry-action]").forEach(b=>b.onclick=()=>pantryAction(b.dataset.id,b.dataset.pantryAction));
+}
+function pantryRow(x){ const d=daysUntil(x.expires); const low=Number(x.qty||0)<=Number(x.lowAt||0); return `<div class="smart-row"><div class="smart-row-main"><b>${esc(x.name)}</b><small>${fmt(x.qty)} ${esc(x.unit||"units")} · ${esc(x.location||"Pantry")}${x.store?` · ${esc(x.store)}`:""}</small><div>${x.staple?'<span class="smart-pill ok">Staple</span>':""}${low?'<span class="smart-pill warn">Low stock</span>':""}${d!=null&&d<=5?`<span class="smart-pill ${d<0?"bad":"warn"}">${d<0?"Expired":`Expires ${d}d`}</span>`:""}</div></div><div class="smart-row-actions"><button class="btn small" data-pantry-action="minus" data-id="${esc(x.id)}">−</button><button class="btn small" data-pantry-action="plus" data-id="${esc(x.id)}">+</button><button class="btn small" data-pantry-action="waste" data-id="${esc(x.id)}">Waste</button><button class="btn small danger" data-pantry-action="delete" data-id="${esc(x.id)}">✕</button></div></div>`; }
+function addPantryFromForm(){ const name=document.getElementById("pantryName").value.trim(); if(!name){toast("Enter an item name");return;} state.smart.pantry.push({id:uid(),name,qty:Number(document.getElementById("pantryQty").value)||0,unit:document.getElementById("pantryUnit").value.trim()||"units",location:document.getElementById("pantryLocation").value,lowAt:Number(document.getElementById("pantryLowAt").value)||0,expires:document.getElementById("pantryExpires").value,store:document.getElementById("pantryStore").value.trim(),cost:Number(document.getElementById("pantryCost").value)||0,staple:document.getElementById("pantryStaple").checked});save();renderSmartHub();toast("Added to inventory"); }
+function pantryAction(id,action){ const x=state.smart.pantry.find(i=>i.id===id);if(!x)return;if(action==="plus")x.qty=Number(x.qty||0)+1;if(action==="minus")x.qty=Math.max(0,Number(x.qty||0)-1);if(action==="waste"){const q=Math.min(1,Number(x.qty||0));x.qty=Math.max(0,Number(x.qty||0)-q);state.smart.wasteLog.push({id:uid(),monthId:state.activeMonthId,year:new Date().getFullYear(),date:isoToday(),name:x.name,qty:q,unit:x.unit,reason:"Wasted/expired"});}if(action==="delete"&&confirm(`Remove ${x.name} from pantry inventory?`))state.smart.pantry=state.smart.pantry.filter(i=>i.id!==id);save();renderSmartHub(); }
+function addLowStockToMonth(){ let n=0;for(const x of state.smart.pantry.filter(x=>Number(x.qty||0)<=Number(x.lowAt||0))){if(monthHasFood(state.activeMonthId,x.name))continue;month().items.push({id:uid(),category:"Other",name:x.name,target:Math.max(1,Number(x.lowAt||0)+1),unit:x.unit||"units",note:"Added from low-stock pantry",have:0,active:true,custom:true,price:Number(x.cost||0),store:x.store||"",staple:!!x.staple});upsertFoodLibrary(month().items.at(-1));n++;}save();render();renderSmartHub();toast(n?`Added ${n} low-stock item${n===1?"":"s"}`:"No new low-stock items to add"); }
+function parseIngredientLines(text){ return String(text||"").split(/\n+/).map(line=>line.trim()).filter(Boolean).map(line=>{const p=line.split("|").map(x=>x.trim());return{name:p[0],qty:Number(p[1])||1,unit:p[2]||"units",category:p[3]||"Other"};}); }
+function renderMealsTab(el){ const recipes=[...state.smart.recipes].sort((a,b)=>Number(b.favorite)-Number(a.favorite)||a.name.localeCompare(b.name)); el.innerHTML=`<section class="smart-section"><h3>🍽️ Saved meals & meal prep</h3><p>Save meals once, add missing ingredients to a month, mark favorites, and scale ingredients for meal prep.</p><div class="smart-form"><input id="recipeName" placeholder="Meal name"><select id="recipeType"><option value="either">Any day</option><option value="training">Training day</option><option value="rest">Rest day</option></select><textarea class="wide" id="recipeIngredients" placeholder="One ingredient per line:\nChicken breast | 0.5 | lb | Main Meats\nJasmine rice | 45 | g | Carbs & Training Fuel"></textarea><button class="btn primary wide" id="saveRecipeBtn">Save meal</button></div></section><section class="smart-section"><h3>Your meals</h3>${recipes.length?`<div class="smart-list">${recipes.map(recipeRow).join("")}</div>`:`<div class="smart-empty">No saved meals yet.</div>`}</section><section class="smart-section"><h3>🥡 Leftovers</h3><p>Track cooked food you want Seasoned to use before recommending new groceries.</p><div class="smart-form"><input id="leftoverName" placeholder="Cooked food / leftover"><input id="leftoverAmount" placeholder="Amount (e.g. 200 g)"><button class="btn wide" id="addLeftoverBtn">Add leftover</button></div>${state.smart.leftovers.length?`<div class="smart-list" style="margin-top:8px">${state.smart.leftovers.map(x=>`<div class="smart-row"><div class="smart-row-main"><b>${esc(x.name)}</b><small>${esc(x.amount||"")} · added ${esc(x.date||"")}</small></div><button class="btn small danger" data-leftover-id="${x.id}">Used</button></div>`).join("")}</div>`:""}</section>`;
+ document.getElementById("saveRecipeBtn").onclick=()=>{const name=document.getElementById("recipeName").value.trim(),ingredients=parseIngredientLines(document.getElementById("recipeIngredients").value);if(!name||!ingredients.length){toast("Add a meal name and ingredients");return;}state.smart.recipes.push({id:uid(),name,ingredients,trainingDay:document.getElementById("recipeType").value,favorite:false});save();renderSmartHub();toast("Meal saved");};
+ document.getElementById("addLeftoverBtn").onclick=()=>{const name=document.getElementById("leftoverName").value.trim();if(!name)return;state.smart.leftovers.push({id:uid(),name,amount:document.getElementById("leftoverAmount").value.trim(),date:isoToday()});save();renderSmartHub();};
+ el.querySelectorAll("[data-recipe-action]").forEach(b=>b.onclick=()=>recipeAction(b.dataset.id,b.dataset.recipeAction)); el.querySelectorAll("[data-leftover-id]").forEach(b=>b.onclick=()=>{state.smart.leftovers=state.smart.leftovers.filter(x=>x.id!==b.dataset.leftoverId);save();renderSmartHub();});
+}
+function recipeRow(r){ return `<div class="smart-row"><div class="smart-row-main"><b>${r.favorite?"⭐ ":""}${esc(r.name)}</b><small>${r.ingredients.map(i=>`${fmt(i.qty)} ${esc(i.unit)} ${esc(i.name)}`).join(" · ")}</small><span class="smart-pill">${r.trainingDay==="training"?"Training day":r.trainingDay==="rest"?"Rest day":"Any day"}</span></div><div class="smart-row-actions"><button class="btn small" data-recipe-action="favorite" data-id="${r.id}">${r.favorite?"Unfavorite":"Favorite"}</button><button class="btn small primary" data-recipe-action="add" data-id="${r.id}">Add missing</button><button class="btn small" data-recipe-action="prep" data-id="${r.id}">Meal prep</button><button class="btn small danger" data-recipe-action="delete" data-id="${r.id}">✕</button></div></div>`; }
+function recipeAction(id,action){const r=state.smart.recipes.find(x=>x.id===id);if(!r)return;if(action==="favorite")r.favorite=!r.favorite;if(action==="delete"&&confirm(`Delete saved meal “${r.name}”?`))state.smart.recipes=state.smart.recipes.filter(x=>x.id!==id);if(action==="add")addRecipeToMonth(r,1);if(action==="prep"){const servings=Math.max(1,Number(prompt("How many servings are you meal prepping?","4"))||4);addRecipeToMonth(r,servings);}save();render();renderSmartHub();}
+function addRecipeToMonth(r,servings){let n=0;for(const ing of r.ingredients){const existing=month().items.find(x=>foodNameKey(x.name)===foodNameKey(ing.name));if(existing){existing.target=Math.max(Number(existing.target||0),Number(ing.qty||1)*servings);continue;}month().items.push({id:uid(),category:ing.category||"Other",name:ing.name,target:Number(ing.qty||1)*servings,unit:ing.unit||"units",note:`${r.name}${servings>1?` · ${servings} prep servings`:""}`,have:0,active:true,custom:true,price:0,store:"",staple:false});upsertFoodLibrary(month().items.at(-1));n++;}toast(n?`Added ${n} ingredient${n===1?"":"s"}`:"Updated meal ingredient targets");}
+const WEEKDAYS=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+function renderPlanTab(el){ const recipes=state.smart.recipes; const opts=(val="")=>`<option value="">—</option>`+recipes.map(r=>`<option value="${r.id}" ${val===r.id?"selected":""}>${esc(r.name)}</option>`).join(""); WEEKDAYS.forEach(d=>{if(!state.smart.weekPlan.days[d])state.smart.weekPlan.days[d]={training:false,breakfast:"",lunch:"",dinner:""};}); el.innerHTML=`<section class="smart-section"><h3>📅 Weekly meal planner</h3><p>Mark training days and assign your saved meals. Seasoned AI can use this plan when helping with groceries.</p><div class="smart-week">${WEEKDAYS.map(d=>{const x=state.smart.weekPlan.days[d];return `<div class="smart-day"><div class="smart-day-title"><b>${d}</b><label><input type="checkbox" class="weekTraining" data-day="${d}" ${x.training?"checked":""}> Training day</label></div><div class="smart-day-meals"><select class="weekMeal" data-day="${d}" data-meal="breakfast">${opts(x.breakfast)}</select><select class="weekMeal" data-day="${d}" data-meal="lunch">${opts(x.lunch)}</select><select class="weekMeal" data-day="${d}" data-meal="dinner">${opts(x.dinner)}</select></div></div>`}).join("")}</div><div class="smart-grid" style="margin-top:10px"><button class="btn primary" id="weekToGroceriesBtn">Add week's missing ingredients</button><button class="btn" id="aiWeekPlanBtn">✨ Ask AI to improve week</button></div></section>`;
+ el.querySelectorAll(".weekTraining").forEach(x=>x.onchange=()=>{state.smart.weekPlan.days[x.dataset.day].training=x.checked;save();});el.querySelectorAll(".weekMeal").forEach(x=>x.onchange=()=>{state.smart.weekPlan.days[x.dataset.day][x.dataset.meal]=x.value;save();});document.getElementById("weekToGroceriesBtn").onclick=weekPlanToGroceries;document.getElementById("aiWeekPlanBtn").onclick=()=>{closeSmartHub();openAiPanel();askSeasonedAI("question","Review my weekly meal plan, training/rest days, pantry, current groceries and nutrition goals. Suggest practical improvements and identify missing ingredients. Do not change anything automatically.");}; }
+function weekPlanToGroceries(){const counts={};for(const d of WEEKDAYS){const x=state.smart.weekPlan.days[d];for(const meal of ["breakfast","lunch","dinner"]){if(x[meal])counts[x[meal]]=(counts[x[meal]]||0)+1;}}for(const [id,c] of Object.entries(counts)){const r=state.smart.recipes.find(x=>x.id===id);if(r)addRecipeToMonth(r,c);}save();render();renderSmartHub();}
+function renderBudgetTab(el){ const budget=state.smart.monthlyBudgets[state.activeMonthId]||200, items=month().items.filter(i=>i.active); el.innerHTML=`<section class="smart-section"><h3>💰 ${theme().name} budget</h3><p>Add your usual per-unit price and store. Seasoned will remember purchases and build your own price history over time.</p><div class="smart-form"><input id="monthBudgetInput" type="number" step="1" value="${budget}"><button class="btn primary" id="saveBudgetBtn">Set monthly budget</button></div><div class="smart-metrics" style="margin-top:10px"><div class="smart-metric"><b>${money(plannedSpend())}</b><span>planned</span></div><div class="smart-metric"><b>${money(actualSpendMonth())}</b><span>recorded</span></div><div class="smart-metric"><b>${money(budget)}</b><span>budget</span></div><div class="smart-metric"><b>${plannedSpend()<=budget?"On track":"Over plan"}</b><span>status</span></div></div></section><section class="smart-section"><h3>Item prices & stores</h3><table class="smart-table"><thead><tr><th>Item</th><th>Price/unit</th><th>Store</th><th>Staple</th><th>Purchase</th></tr></thead><tbody>${items.map(i=>`<tr><td>${esc(i.name)}</td><td><input class="budgetPrice" data-id="${i.id}" type="number" step=".01" value="${Number(i.price||0)}"></td><td><input class="budgetStore" data-id="${i.id}" value="${esc(i.store||"")}" placeholder="Aldi"></td><td><input class="budgetStaple" data-id="${i.id}" type="checkbox" ${i.staple?"checked":""}></td><td><button class="btn small recordPurchase" data-id="${i.id}">Record</button></td></tr>`).join("")}</tbody></table></section><section class="smart-section"><h3>🏷️ Your price history</h3>${priceHistorySummary()}</section>`;
+ document.getElementById("saveBudgetBtn").onclick=()=>{state.smart.monthlyBudgets[state.activeMonthId]=Math.max(0,Number(document.getElementById("monthBudgetInput").value)||0);save();renderSmartHub();};el.querySelectorAll(".budgetPrice").forEach(x=>x.onchange=()=>{const i=findItem(x.dataset.id);if(i)i.price=Math.max(0,Number(x.value)||0);save();renderSmartSummary();});el.querySelectorAll(".budgetStore").forEach(x=>x.onchange=()=>{const i=findItem(x.dataset.id);if(i)i.store=x.value.trim();save();});el.querySelectorAll(".budgetStaple").forEach(x=>x.onchange=()=>{const i=findItem(x.dataset.id);if(i)i.staple=x.checked;save();});el.querySelectorAll(".recordPurchase").forEach(x=>x.onclick=()=>recordPurchase(findItem(x.dataset.id))); }
+function recordPurchase(i){if(!i)return;const qty=Math.max(.01,Number(prompt(`How many ${i.unit} of ${i.name} did you buy?`,"1"))||1);const price=Math.max(0,Number(prompt("Price per unit?",String(i.price||0)))||0);const store=prompt("Store?",i.store||"")||"";i.have=Number(i.have||0)+qty;i.price=price;i.store=store;const rec={id:uid(),monthId:state.activeMonthId,year:new Date().getFullYear(),date:isoToday(),name:i.name,qty,unit:i.unit,unitPrice:price,total:qty*price,store};state.smart.purchaseHistory.push(rec);state.smart.priceHistory.push(rec);addToPantryQuantity(i.name,qty,i.unit,store,price);save();render();renderSmartHub();toast("Purchase recorded and pantry updated");}
+function priceHistorySummary(){ const h=state.smart.priceHistory.slice(-100); if(!h.length)return '<div class="smart-empty">Record purchases to build your personal store-price comparison.</div>';const groups={};for(const x of h){const k=foodNameKey(x.name);(groups[k]??=[]).push(x);}return `<div class="smart-list">${Object.values(groups).slice(-12).map(arr=>{const latest=arr.at(-1),best=[...arr].sort((a,b)=>Number(a.unitPrice)-Number(b.unitPrice))[0];return `<div class="smart-row"><div class="smart-row-main"><b>${esc(latest.name)}</b><small>Latest ${money(latest.unitPrice)} at ${esc(latest.store||"unknown store")} · Best recorded ${money(best.unitPrice)} at ${esc(best.store||"unknown store")}</small></div></div>`;}).join("")}</div>`; }
+function renderInsightsTab(el){ const score=smartScore(),n=state.smart.nutritionSnapshot?.totals||{},g=activeGoal(),yr=new Date().getFullYear(),waste=state.smart.wasteLog.filter(x=>x.monthId===state.activeMonthId&&recordYear(x)===yr),purchases=state.smart.purchaseHistory.filter(x=>x.monthId===state.activeMonthId&&recordYear(x)===yr); const gaps=[];if(n.protein&&n.protein<g.protein*.9)gaps.push(`Protein is ${Math.round(n.protein)}g vs ${g.protein}g target.`);if(n.fiber&&n.fiber<Math.min(25,g.fiber))gaps.push(`Fiber is ${Math.round(n.fiber)}g; prioritize fiber foods.`);if(n.fat&&n.fat<g.fat)gaps.push(`Fat is ${Math.round(n.fat)}g vs ${g.fat}g minimum.`); el.innerHTML=`<section class="smart-section"><h3>📊 Monthly insights</h3><div class="score-wrap"><div class="score-ring" style="--score:${score}%"><b>${score}</b></div><div><b>Seasoned Score</b><p class="smart-note">Combines grocery completion, budget fit, recent nutrition progress, and recorded food waste. It is a planning score, not a health grade.</p></div></div></section><section class="smart-section"><h3>🥗 Nutrition gaps</h3>${state.smart.nutritionSnapshot?`${gaps.length?`<div class="smart-list">${gaps.map(x=>`<div class="smart-row"><div class="smart-row-main"><b>${esc(x)}</b></div></div>`).join("")}</div>`:'<div class="smart-empty">No obvious gap from the latest day snapshot.</div>'}<button class="btn small" id="deepGapBtn" style="margin-top:9px">✨ Deep AI analysis</button>`:'<div class="smart-empty">Sync FatSecret to see nutrition gaps.</div>'}</section><section class="smart-section"><h3>🗑️ Food waste</h3><div class="smart-metrics"><div class="smart-metric"><b>${waste.length}</b><span>waste events</span></div><div class="smart-metric"><b>${purchases.length}</b><span>purchases</span></div><div class="smart-metric"><b>${money(actualSpendMonth())}</b><span>spent logged</span></div><div class="smart-metric"><b>${month().items.filter(i=>i.active&&Number(i.have||0)>=Number(i.target||0)).length}</b><span>items complete</span></div></div>${waste.length?`<div class="smart-list" style="margin-top:8px">${waste.slice(-8).reverse().map(x=>`<div class="smart-row"><div class="smart-row-main"><b>${esc(x.name)}</b><small>${fmt(x.qty)} ${esc(x.unit)} · ${esc(x.date)}</small></div></div>`).join("")}</div>`:""}</section><section class="smart-section"><h3>➡️ Automatic next-month planning</h3><p>Carry forward active staples and useful quantities with zero inventory so the next month is ready to shop.</p><div class="smart-grid"><button class="btn primary" id="prepareNextBtn">Prepare next month</button><button class="btn" id="copyStaplesBtn">Staples only</button></div></section>`; document.getElementById("deepGapBtn")?.addEventListener("click",()=>{closeSmartHub();openAiPanel();askSeasonedAI("question","Analyze my latest nutrition, grocery plan, pantry and recent patterns. Identify the most important nutrition gaps and recommend specific foods already in Seasoned or sensible additions.");});document.getElementById("prepareNextBtn").onclick=()=>prepareNextMonth(false);document.getElementById("copyStaplesBtn").onclick=()=>prepareNextMonth(true); }
+function nextMonthId(){const idx=MONTHS.findIndex(m=>m.id===state.activeMonthId);return MONTHS[(idx+1)%12].id;}
+function prepareNextMonth(staplesOnly){const id=nextMonthId(),dest=state.months[id],src=month().items.filter(i=>i.active&&(!staplesOnly||i.staple));let n=0;for(const i of src){if(monthHasFood(id,i.name))continue;dest.items.push({...clone(i),id:uid(),have:0});n++;}for(const p of state.smart.pantry.filter(x=>x.staple)){if(!staplesOnly&&Number(p.qty||0)>Number(p.lowAt||0))continue;if(monthHasFood(id,p.name))continue;dest.items.push({id:uid(),category:"Other",name:p.name,target:Math.max(1,Number(p.lowAt||0)+1),unit:p.unit||"units",note:"Staple from pantry",have:0,active:true,custom:true,price:Number(p.cost||0),store:p.store||"",staple:true});n++;}save();toast(`Prepared ${monthDef(id).name}: ${n} new item${n===1?"":"s"}`);renderSmartHub();}
+function renderCaptureTab(el){ el.innerHTML=`<section class="smart-section"><h3>📷 Barcode scanner</h3><p>Take or choose a barcode photo. Seasoned can scan it on supported browsers and ask FatSecret for the matching food when your API tier allows barcode access.</p><div class="smart-form"><input class="wide" id="barcodeFile" type="file" accept="image/*" capture="environment"><input id="barcodeManual" inputmode="numeric" placeholder="Or enter UPC/EAN barcode"><button class="btn primary" id="lookupBarcodeBtn">Look up barcode</button></div><div id="barcodeResult" class="smart-note" style="margin-top:8px"></div></section><section class="smart-section"><h3>🧾 Receipt scanner</h3><p>Use AI to extract grocery names, quantities, and prices. Seasoned shows the result before adding anything.</p><input id="receiptFile" type="file" accept="image/*" capture="environment"><img id="receiptPreview" class="capture-preview"><button class="btn primary" id="analyzeReceiptBtn" style="margin-top:8px">✨ Analyze receipt</button><div id="receiptResult" class="smart-note" style="margin-top:8px"></div></section><section class="smart-section"><h3>💬 Natural-language grocery command</h3><p>Example: “Add 2 bags of frozen sweet potatoes and 3 Chobani yogurts to this month.” You approve the parsed items before they are added.</p><div class="smart-form"><textarea class="wide" id="groceryCommand" placeholder="Tell Seasoned what to add…"></textarea><button class="btn primary wide" id="runGroceryCommandBtn">✨ Parse command</button></div><div id="commandResult" class="smart-note" style="margin-top:8px"></div></section>`;document.getElementById("barcodeFile").onchange=scanBarcodeImage;document.getElementById("lookupBarcodeBtn").onclick=()=>lookupBarcode(document.getElementById("barcodeManual").value);document.getElementById("receiptFile").onchange=e=>previewReceipt(e.target.files?.[0]);document.getElementById("analyzeReceiptBtn").onclick=analyzeReceipt;document.getElementById("runGroceryCommandBtn").onclick=runGroceryCommand; }
+async function scanBarcodeImage(e){const f=e.target.files?.[0];if(!f)return;const out=document.getElementById("barcodeResult");if(!("BarcodeDetector" in window)){out.textContent="This browser does not expose BarcodeDetector. Enter the number manually below.";return;}try{const bitmap=await createImageBitmap(f),detector=new BarcodeDetector({formats:["ean_13","ean_8","upc_a","upc_e"]}),codes=await detector.detect(bitmap);if(!codes.length)throw new Error("No barcode found in that image.");document.getElementById("barcodeManual").value=codes[0].rawValue;await lookupBarcode(codes[0].rawValue);}catch(err){out.textContent=err.message;}}
+async function lookupBarcode(value){const out=document.getElementById("barcodeResult"),raw=String(value||"").replace(/\D/g,"");if(!raw){out.textContent="Enter or scan a barcode first.";return;}out.textContent="Looking up barcode…";try{const data=await apiRequest(`/api/fatsecret/barcode?barcode=${encodeURIComponent(raw)}`);const food=data.food||data;const name=[food.brand_name,food.food_name].filter(Boolean).join(" — ")||"Matched food";out.innerHTML=`<b>${esc(name)}</b><br>${food.food_type?esc(food.food_type):""}<br><button class="btn small primary" id="addBarcodeFoodBtn" style="margin-top:6px">Add to ${theme().name}</button>`;document.getElementById("addBarcodeFoodBtn").onclick=()=>{if(!monthHasFood(state.activeMonthId,name)){month().items.push({id:uid(),category:"Other",name,target:1,unit:"item",note:`Barcode ${raw}`,have:0,active:true,custom:true,price:0,store:"",staple:false});upsertFoodLibrary(month().items.at(-1));save();render();toast("Barcode item added");}};}catch(err){out.textContent=err.message+" You can still add the product manually.";}}
+let receiptImageData="";
+async function previewReceipt(file){
+  if(!file)return;
+  const out=document.getElementById("receiptResult"); if(out) out.textContent="Preparing receipt photo…";
+  try{
+    const bitmap=await createImageBitmap(file); const max=1600, scale=Math.min(1,max/Math.max(bitmap.width,bitmap.height));
+    const canvas=document.createElement("canvas"); canvas.width=Math.max(1,Math.round(bitmap.width*scale)); canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+    canvas.getContext("2d").drawImage(bitmap,0,0,canvas.width,canvas.height); receiptImageData=canvas.toDataURL("image/jpeg",.78);
+    const img=document.getElementById("receiptPreview"); img.src=receiptImageData; img.style.display="block"; if(out) out.textContent="Receipt ready to analyze.";
+  }catch(err){ if(out) out.textContent="Could not prepare that image: "+err.message; }
+}
+async function analyzeReceipt(){const out=document.getElementById("receiptResult");if(!receiptImageData){out.textContent="Choose a receipt photo first.";return;}out.textContent="Seasoned AI is reading the receipt…";try{const data=await apiRequest("/api/receipt",{method:"POST",body:JSON.stringify({imageDataUrl:receiptImageData})});const items=Array.isArray(data.items)?data.items:[];if(!items.length){out.textContent="No grocery items could be extracted.";return;}out.innerHTML=`Found ${items.length} item${items.length===1?"":"s"}:<br>${items.map(x=>`• ${esc(x.name)} ${x.qty?`× ${fmt(x.qty)}`:""} ${x.price?money(x.price):""}`).join("<br>")}<br><button class="btn small primary" id="applyReceiptBtn" style="margin-top:8px">Add confirmed items</button>`;document.getElementById("applyReceiptBtn").onclick=()=>applyReceiptItems(items,data.store||"");}catch(err){out.textContent=err.message;}}
+function applyReceiptItems(items,store){let n=0;for(const x of items){const name=String(x.name||"").trim();if(!name)continue;let i=month().items.find(z=>foodNameKey(z.name)===foodNameKey(name));if(!i){i={id:uid(),category:x.category||"Other",name,target:Number(x.qty||1),unit:x.unit||"units",note:"Added from receipt",have:0,active:true,custom:true,price:Number(x.price||0),store:store||x.store||"",staple:false};month().items.push(i);upsertFoodLibrary(i);}const qty=Number(x.qty||1);i.have=Number(i.have||0)+qty;if(x.price)i.price=Number(x.price);if(store)i.store=store;const rec={id:uid(),monthId:state.activeMonthId,year:new Date().getFullYear(),date:isoToday(),name,qty,unit:i.unit,unitPrice:Number(x.price||0),total:Number(x.total||((x.price||0)*qty)),store:store||x.store||""};state.smart.purchaseHistory.push(rec);state.smart.priceHistory.push(rec);addToPantryQuantity(name,qty,i.unit,store||x.store||"",Number(x.price||0));n++;}save();render();renderSmartHub();toast(`Added ${n} receipt item${n===1?"":"s"}`);}
+async function runGroceryCommand(){const q=document.getElementById("groceryCommand").value.trim(),out=document.getElementById("commandResult");if(!q){out.textContent="Type a command first.";return;}out.textContent="Parsing command…";try{const data=await apiRequest("/api/ai/command",{method:"POST",body:JSON.stringify({command:q,knownItems:(state.foodLibrary||[]).map(x=>({name:x.name,category:x.category,unit:x.unit,target:x.target}))})});const items=data.items||[];if(!items.length){out.textContent="I couldn't find any items to add in that command.";return;}out.innerHTML=`I understood:<br>${items.map(x=>`• ${fmt(x.qty||1)} ${esc(x.unit||"units")} ${esc(x.name)}`).join("<br>")}<br><button class="btn small primary" id="applyCommandBtn" style="margin-top:8px">Approve & add</button>`;document.getElementById("applyCommandBtn").onclick=()=>applyCommandItems(items);}catch(err){out.textContent=err.message;}}
+function applyCommandItems(items){let n=0;for(const x of items){const name=String(x.name||"").trim();if(!name)continue;const existing=month().items.find(i=>foodNameKey(i.name)===foodNameKey(name));if(existing){existing.target=Math.max(Number(existing.target||0),Number(x.qty||1));existing.active=true;}else{const saved=state.foodLibrary.find(i=>foodNameKey(i.name)===foodNameKey(name));const i={id:uid(),category:x.category||saved?.category||"Other",name,target:Number(x.qty||1),unit:x.unit||saved?.unit||"units",note:"Added by Seasoned AI command",have:0,active:true,custom:true,price:0,store:"",staple:false};month().items.push(i);upsertFoodLibrary(i);}n++;}save();render();renderSmartHub();toast(`Added/updated ${n} item${n===1?"":"s"}`);}
+function resetCurrentMonthCounts(){ if(!confirm(`Reset all “have” quantities in ${theme().name} to 0? Items and targets will stay.`))return;writeRecoverySnapshot();month().items.forEach(i=>i.have=0);save();render();toast(`${theme().name} quantities reset`); }
+function clearCurrentMonth(){ if(!confirm(`Clear ALL items from ${theme().name}? This is designed for reusing the month next year. Remembered foods, pantry, recipes, history, and other months will stay.`))return;writeRecoverySnapshot();month().items=[];save();render();toast(`${theme().name} cleared`); }
+
+function toggleAddPanel(force){
+  const panel=document.getElementById("addPanel");
+  const open=typeof force==="boolean"?force:!panel.classList.contains("open");
+  panel.classList.toggle("open",open);
+  if(open) setTimeout(()=>{ panel.scrollIntoView({behavior:"smooth",block:"center"}); document.getElementById("addName").focus(); },50);
+}
+
+document.getElementById("search").addEventListener("input",render);
+document.querySelectorAll(".chip").forEach(chip=>chip.addEventListener("click",()=>{
+  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active")); chip.classList.add("active"); filterMode=chip.dataset.filter; render();
+}));
+function resetAddForm(){
+  const saved=document.getElementById("savedFoodSelect"); if(saved) saved.value="";
+  document.getElementById("addName").value="";
+  document.getElementById("addTarget").value=1;
+  document.getElementById("addUnit").value="";
+  document.getElementById("addNote").value="";
+  document.getElementById("addCategory").selectedIndex=0;
+}
+document.getElementById("savedFoodSelect").addEventListener("change",e=>{
+  const saved=(state.foodLibrary||[]).find(x=>String(x.libraryId)===String(e.target.value));
+  if(saved) fillAddFormFromSaved(saved);
+});
+document.getElementById("clearSavedFood").addEventListener("click",()=>{ resetAddForm(); document.getElementById("addName").focus(); });
+document.getElementById("cancelAdd").addEventListener("click",()=>{
+  resetAddForm();
+  toggleAddPanel(false);
+  toast("Add food cancelled");
+});
+document.getElementById("addFood").addEventListener("click",()=>{
+  const name=document.getElementById("addName").value.trim(); if(!name){ alert("Enter a food name."); return; }
+  if(monthHasFood(state.activeMonthId,name)){ alert(`“${name}” is already in ${theme().name}.`); return; }
+  const target=Math.max(0,Number(document.getElementById("addTarget").value)||0);
+  const unit=document.getElementById("addUnit").value.trim()||"units";
+  const note=document.getElementById("addNote").value.trim();
+  const newItem={id:uid(),category:document.getElementById("addCategory").value,name,target,unit,note,have:0,active:true,custom:true};
+  month().items.push(newItem);
+  upsertFoodLibrary(newItem);
+  resetAddForm();
+  save(); render(); toggleAddPanel(false); toast(`Added to ${theme().name} and remembered`);
+});
+
+document.getElementById("aiTop").addEventListener("click",openAiPanel);
+document.getElementById("openAiFromSettings").addEventListener("click",()=>{ toggleSettings(false); openAiPanel(); });
+document.getElementById("closeAi").addEventListener("click",closeAiPanel);
+document.getElementById("aiOverlay").addEventListener("click",e=>{ if(e.target.id==="aiOverlay") closeAiPanel(); });
+document.getElementById("refreshNutritionBtn").addEventListener("click",()=>loadTodayNutrition(true));
+document.getElementById("mealHelpBtn").addEventListener("click",()=>askSeasonedAI("meal","Recommend my next meal using today’s nutrition and groceries I have or still need."));
+document.getElementById("groceryIdeasBtn").addEventListener("click",()=>askSeasonedAI("grocery_plan","Review this month’s Seasoned grocery plan and suggest nutrition-aware improvements. Suggestions only; do not change the list."));
+document.getElementById("sendAiQuestion").addEventListener("click",()=>{
+  const q=document.getElementById("aiQuestion").value.trim(); if(!q){ toast("Type a question first"); return; }
+  askSeasonedAI("question",q);
+});
+document.getElementById("aiQuestion").addEventListener("keydown",e=>{ if((e.metaKey||e.ctrlKey)&&e.key==="Enter") document.getElementById("sendAiQuestion").click(); });
+document.getElementById("saveIntegrationConfig").addEventListener("click",()=>{
+  try {
+    const url=normalizeApiUrl(document.getElementById("integrationApiUrl").value);
+    const token=document.getElementById("integrationAppToken").value.trim();
+    if(!url || !token) throw new Error("Enter both the backend URL and personal app token.");
+    localStorage.setItem(SEASONED_API_URL_KEY,url); localStorage.setItem(SEASONED_API_TOKEN_KEY,token);
+    toast("Integration connection saved"); updateIntegrationStatus();
+  } catch(e){ alert(e.message); }
+});
+document.getElementById("refreshIntegrationStatus").addEventListener("click",updateIntegrationStatus);
+document.getElementById("connectFatSecretBtn").addEventListener("click",connectFatSecret);
+document.getElementById("disconnectFatSecretBtn").addEventListener("click",disconnectFatSecret);
+
+
+document.getElementById("monthTabs").addEventListener("click",e=>{
+  const btn=e.target.closest(".monthtab[data-month]");
+  if(!btn) return;
+  e.preventDefault();
+  switchMonth(btn.dataset.month);
+});
+
+document.getElementById("smartHubBtn").addEventListener("click",()=>openSmartHub("overview"));
+document.getElementById("closeSmartHub").addEventListener("click",closeSmartHub);
+document.getElementById("smartHubOverlay").addEventListener("click",e=>{if(e.target.id==="smartHubOverlay")closeSmartHub();});
+document.getElementById("smartTabs").addEventListener("click",e=>{const b=e.target.closest("[data-smart-tab]");if(b)switchSmartTab(b.dataset.smartTab);});
+document.getElementById("resetMonthCountsBtn").addEventListener("click",resetCurrentMonthCounts);
+document.getElementById("clearMonthBtn").addEventListener("click",clearCurrentMonth);
+
+document.getElementById("fab").addEventListener("click",()=>toggleAddPanel());
+document.getElementById("addTop").addEventListener("click",()=>toggleAddPanel());
+document.getElementById("settingsBtn").addEventListener("click",()=>toggleSettings());
+document.getElementById("closeSettings").addEventListener("click",()=>toggleSettings(false));
+document.getElementById("appearanceOptions").addEventListener("click",e=>{
+  const btn=e.target.closest("[data-appearance-mode]"); if(btn) setAppearanceMode(btn.dataset.appearanceMode);
+});
+const onDeviceAppearanceChange=()=>{ if(state?.appearanceMode==="device") { applyTheme(); updateAppearanceControls(); } };
+if(appearanceMedia.addEventListener) appearanceMedia.addEventListener("change",onDeviceAppearanceChange);
+else appearanceMedia.addListener?.(onDeviceAppearanceChange);
+document.getElementById("backupBtn").addEventListener("click",exportBackup);
+document.getElementById("restoreInput").addEventListener("change",e=>restoreBackup(e.target.files?.[0]));
+document.getElementById("restoreSnapshotBtn").addEventListener("click",restoreNewestSnapshot);
+document.getElementById("resetAllBtn").addEventListener("click",resetAllData);
+window.addEventListener("online",updateBackupStatus);
+window.addEventListener("offline",updateBackupStatus);
+document.getElementById("cancelRemoveBtn").addEventListener("click",closeRemoveConfirm);
+document.getElementById("confirmRemoveBtn").addEventListener("click",commitRemove);
+document.getElementById("removeConfirmOverlay").addEventListener("click",e=>{ if(e.target.id==="removeConfirmOverlay") closeRemoveConfirm(); });
+document.getElementById("cancelCopyBtn").addEventListener("click",closeCopyFood);
+document.getElementById("confirmCopyBtn").addEventListener("click",commitCopyFood);
+document.getElementById("selectAllCopyMonths").addEventListener("click",selectAllCopyMonths);
+document.getElementById("copyFoodOverlay").addEventListener("click",e=>{ if(e.target.id==="copyFoodOverlay") closeCopyFood(); });
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Escape") return;
+  if(!document.getElementById("smartHubOverlay").hidden) closeSmartHub();
+  else if(!document.getElementById("aiOverlay").hidden) closeAiPanel();
+  else if(!document.getElementById("copyFoodOverlay").hidden) closeCopyFood();
+  else if(!document.getElementById("removeConfirmOverlay").hidden) closeRemoveConfirm();
+});
+
+load(); ensureSmartState(); render(); document.body.classList.add("ui-ready"); updateBackupStatus(); registerServiceWorker(); fillIntegrationConfig(); handleIntegrationReturn(); updateIntegrationStatus();
+</script>
+</body>
+</html>
